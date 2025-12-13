@@ -200,16 +200,16 @@ export default function OnboardingPage() {
           const fileExt = avatarFile.name.split('.').pop()
           const fileName = `${authUser.id}.${fileExt}`
           
-          const { error: uploadError } = await supabase.storage
-            .from('avatars')
+          const { error: uploadError } = await (supabase.storage
+            .from('avatars') as any)
             .upload(fileName, avatarFile, { upsert: true })
 
           if (uploadError) {
             console.error('✗ Avatar upload failed:', uploadError)
             toast.error('Avatar upload failed, continuing anyway...')
           } else {
-            const { data: { publicUrl } } = supabase.storage
-              .from('avatars')
+            const { data: { publicUrl } } = (supabase.storage
+              .from('avatars') as any)
               .getPublicUrl(fileName)
             finalAvatarUrl = publicUrl
             console.log('✓ Avatar uploaded successfully:', publicUrl)
@@ -228,8 +228,8 @@ export default function OnboardingPage() {
         interests: selectedInterests
       })
 
-      const { error: updateError, data: updateData } = await supabase
-        .from('users')
+      const { error: updateError, data: updateData } = await (supabase
+        .from('users') as any)
         .update({
           name: name.trim(),
           bio: bio.trim() || null,
@@ -251,8 +251,8 @@ export default function OnboardingPage() {
       if (selectedCommunity) {
         console.log('→ Attempting to join community:', selectedCommunity)
         try {
-          const { error: membershipError, data: membershipData } = await supabase
-            .from('community_memberships')
+          const { error: membershipError, data: membershipData } = await (supabase
+            .from('community_memberships') as any)
             .insert({
               user_id: authUser.id,
               community_id: selectedCommunity,
