@@ -2,111 +2,114 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  // Get environment variables
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
-
-  // Check if we have valid config
-  const hasValidConfig = supabaseUrl?.includes('supabase.co') && supabaseAnonKey?.startsWith('eyJ')
-  
-  // If env vars are missing or invalid, allow request to proceed
-  if (!hasValidConfig) {
-    console.warn('[Middleware] Supabase not configured, skipping auth check')
-    return NextResponse.next()
-  }
-
   let response = NextResponse.next({
     request: {
       headers: request.headers,
     },
   })
 
-  const supabase = createServerClient(supabaseUrl!, supabaseAnonKey!, {
-    cookies: {
-      get(name: string) {
-        return request.cookies.get(name)?.value
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          request.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          response.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+        },
+        remove(name: string, options: CookieOptions) {
+          request.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          response.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+        },
       },
-      set(name: string, value: string, options: CookieOptions) {
-        request.cookies.set({
-          name,
-          value,
-          ...options,
-        })
-        response = NextResponse.next({
-          request: {
-            headers: request.headers,
-          },
-        })
-        response.cookies.set({
-          name,
-          value,
-          ...options,
-        })
-      },
-      remove(name: string, options: CookieOptions) {
-        request.cookies.set({
-          name,
-          value: '',
-          ...options,
-        })
-        response = NextResponse.next({
-          request: {
-            headers: request.headers,
-          },
-        })
-        response.cookies.set({
-          name,
-          value: '',
-          ...options,
-        })
-      },
-    },
-  })
-
-  // Try to get user, but handle errors gracefully
-  let user = null
-  try {
-    const { data, error } = await supabase.auth.getUser()
-    if (error) {
-      console.error('Auth error in middleware:', error.message)
-    } else {
-      user = data.user
     }
-  } catch (error) {
-    console.error('Failed to get user in middleware:', error)
-    // Allow request to proceed without auth check
+  )
+
+  // Get user session
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const pathname = request.nextUrl.pathname
+
+  // Public routes that don't require authentication
+  const publicRoutes = [
+    '/',
+    '/auth/login',
+    '/auth/callback',
+  ]
+
+  const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith('/auth/'))
+
+  // Allow public routes for non-authenticated users
+  if (!user && isPublicRoute) {
     return response
   }
 
-  // Public routes that don't require authentication
-  const publicRoutes = ['/', '/auth/login', '/auth/verify']
-  const isPublicRoute = publicRoutes.some(route => 
-    request.nextUrl.pathname === route || request.nextUrl.pathname.startsWith('/auth/')
-  )
-
-  // If user is not authenticated and trying to access protected route
+  // If user is not authenticated and trying to access protected route, redirect to login
   if (!user && !isPublicRoute) {
     const redirectUrl = new URL('/auth/login', request.url)
-    redirectUrl.searchParams.set('redirectTo', request.nextUrl.pathname)
+    redirectUrl.searchParams.set('redirectTo', pathname)
     return NextResponse.redirect(redirectUrl)
   }
 
-  // If user is authenticated but hasn't completed profile, redirect to onboarding
-  if (user && !isPublicRoute && !request.nextUrl.pathname.startsWith('/onboarding')) {
-    const { data: profile } = await supabase
-      .from('users')
+  // If user IS authenticated, check profile completion
+  if (user) {
+    // Allow access to callback (needed for email magic link flow)
+    if (pathname === '/auth/callback') {
+      return response
+    }
+
+    // Allow access to onboarding
+    if (pathname === '/onboarding') {
+      return response
+    }
+
+    // Check if profile is complete
+    const { data: profile } = await (supabase
+      .from('users') as any)
       .select('name')
       .eq('id', user.id)
       .single()
 
-    if (!profile?.name) {
+    // If profile is incomplete, redirect to onboarding (except if already there)
+    if (!profile?.name && pathname !== '/onboarding') {
+      console.log('Profile incomplete, redirecting to onboarding')
       return NextResponse.redirect(new URL('/onboarding', request.url))
     }
-  }
 
-  // If authenticated user tries to access auth pages, redirect to feed
-  if (user && isPublicRoute && request.nextUrl.pathname !== '/') {
-    return NextResponse.redirect(new URL('/feed', request.url))
+    // If profile is complete but trying to access auth pages, redirect to feed
+    if (profile?.name && isPublicRoute && pathname !== '/') {
+      console.log('Profile complete, redirecting to feed')
+      return NextResponse.redirect(new URL('/feed', request.url))
+    }
   }
 
   return response
