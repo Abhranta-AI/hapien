@@ -223,43 +223,57 @@ export default function OnboardingPage() {
       // Update user profile (CRITICAL) - Use UPSERT to handle missing records
       console.log('→ Upserting profile with:', {
         id: authUser.id,
+        email: authUser.email || null,
         name: name.trim(),
         bio: bio.trim() || null,
         avatar_url: finalAvatarUrl,
         interests: selectedInterests
       })
 
-      // Add timeout to prevent infinite hanging
-      const updatePromise = (supabase
-        .from('users') as any)
-        .upsert({
-          id: authUser.id,
-          name: name.trim(),
-          bio: bio.trim() || null,
-          avatar_url: finalAvatarUrl,
-          interests: selectedInterests.length > 0 ? selectedInterests : null,
-          updated_at: new Date().toISOString(),
-        }, {
-          onConflict: 'id'
-        })
-        .select()
+      try {
+        // Add timeout to prevent infinite hanging
+        const updatePromise = (supabase
+          .from('users') as any)
+          .upsert({
+            id: authUser.id,
+            email: authUser.email || null,
+            name: name.trim(),
+            bio: bio.trim() || null,
+            avatar_url: finalAvatarUrl,
+            interests: selectedInterests.length > 0 ? selectedInterests : null,
+            updated_at: new Date().toISOString(),
+          }, {
+            onConflict: 'id'
+          })
+          .select()
 
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Database operation timed out after 10 seconds')), 10000)
-      )
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Database operation timed out after 10 seconds')), 10000)
+        )
 
-      const { error: updateError, data: updateData } = await Promise.race([
-        updatePromise,
-        timeoutPromise
-      ]) as any
+        const result = await Promise.race([
+          updatePromise,
+          timeoutPromise
+        ])
 
-      if (updateError) {
-        console.error('✗ Profile upsert error:', updateError)
-        console.error('Error details:', JSON.stringify(updateError, null, 2))
-        throw new Error(`Failed to update profile: ${updateError.message}`)
+        const { error: updateError, data: updateData } = result as any
+
+        if (updateError) {
+          console.error('✗ Profile upsert error:', updateError)
+          console.error('Error details:', JSON.stringify(updateError, null, 2))
+          throw new Error(`Failed to update profile: ${updateError.message}`)
+        }
+
+        console.log('✓ Profile upserted successfully:', updateData)
+      } catch (timeoutError: any) {
+        console.error('✗ Database timeout or error:', timeoutError)
+        
+        if (timeoutError.message?.includes('timed out')) {
+          toast.error('Database operation timed out. Please check your connection and try again.')
+        }
+        
+        throw timeoutError
       }
-
-      console.log('✓ Profile upserted successfully:', updateData)
 
       // Join community if selected (OPTIONAL/NON-BLOCKING)
       if (selectedCommunity) {
