@@ -18,6 +18,7 @@ export type Database = {
           bio: string | null
           avatar_url: string | null
           interests: string[] | null
+                  is_admin: boolean | null
           created_at: string
           updated_at: string
         }
