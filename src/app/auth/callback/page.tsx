@@ -36,7 +36,7 @@ export default function AuthCallbackPage() {
           .from('users') as any)
           .select('*')
           .eq('id', session.user.id)
-          .single()
+          .maybeSingle()
 
         if (profileError && profileError.code !== 'PGRST116') {
           console.error('✗ Profile check error:', profileError)
