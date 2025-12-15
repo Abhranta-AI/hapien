@@ -1,145 +1,62 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useUserStore } from '@/store'
-import { User as SupabaseUser } from '@supabase/supabase-js'
-import { User } from '@/types/database'
+
+// ULTRA-MINIMAL VERSION FOR DIAGNOSTICS
+// This version does NOTHING except set isLoading to false after 2 seconds
+// If this doesn't work, the problem is NOT in useAuth
 
 export function useAuth() {
-  const [authUser, setAuthUser] = useState<SupabaseUser | null>(null)
+  const [authUser, setAuthUser] = useState(null)
+  const [user, setUser] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
-  const { user, setUser, setLoading } = useUserStore()
   const supabase = createClient()
 
-  const fetchProfile = useCallback(async (userId: string) => {
-    console.log('→ Fetching profile for user:', userId)
-    try {
-      const { data: profile, error } = await (supabase
-        .from('users') as any)
-        .select('*')
-        .eq('id', userId)
-        .single()
-
-      if (error) {
-        console.error('✗ Profile fetch error:', error)
-        // Don't throw - allow auth to complete even if profile fetch fails
-        return null
-      }
-
-      if (profile) {
-        console.log('✓ Profile loaded:', profile.name || profile.email)
-        setUser(profile)
-        return profile
-      }
-
-      return null
-    } catch (error) {
-      console.error('✗ Profile fetch exception:', error)
-      return null
-    }
-  }, [supabase, setUser])
-
   useEffect(() => {
-    console.log('=== useAuth: Initializing ===')
+    console.log('🚨 DIAGNOSTIC MODE: useAuth effect started')
+    console.log('Current time:', new Date().toISOString())
     
-    const getSession = async () => {
-      try {
-        console.log('→ Getting session...')
-        const { data: { session }, error } = await supabase.auth.getSession()
-        
-        if (error) {
-          console.error('✗ Session error:', error)
-          setAuthUser(null)
-          setIsLoading(false)
-          setLoading(false)
-          return
-        }
+    // Force loading to false after 2 seconds NO MATTER WHAT
+    const timer = setTimeout(() => {
+      console.log('🚨 DIAGNOSTIC: Setting isLoading to FALSE now')
+      setIsLoading(false)
+    }, 2000)
 
-        console.log('Session result:', session ? 'Found' : 'Not found')
-        setAuthUser(session?.user ?? null)
-        
-        if (session?.user) {
-          console.log('→ User authenticated, fetching profile...')
-          await fetchProfile(session.user.id)
-        }
-        
-        console.log('✓ Auth initialization complete')
-        setIsLoading(false)
-        setLoading(false)
-      } catch (error) {
-        console.error('✗ Session initialization error:', error)
-        setAuthUser(null)
-        setIsLoading(false)
-        setLoading(false)
+    // Try to get session but don't block on it
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('🚨 DIAGNOSTIC: Session result:', session ? 'Has session' : 'No session')
+      if (session?.user) {
+        setAuthUser(session.user as any)
+        console.log('🚨 DIAGNOSTIC: User email:', session.user.email)
       }
-    }
-
-    getSession()
-
-    console.log('→ Setting up auth state listener...')
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session ? 'Session exists' : 'No session')
-        setAuthUser(session?.user ?? null)
-        
-        if (session?.user) {
-          await fetchProfile(session.user.id)
-        } else {
-          setUser(null)
-        }
-      }
-    )
+    }).catch(err => {
+      console.error('🚨 DIAGNOSTIC: Session error:', err)
+    })
 
     return () => {
-      console.log('→ Cleaning up auth subscription')
-      subscription.unsubscribe()
+      console.log('🚨 DIAGNOSTIC: Cleanup running')
+      clearTimeout(timer)
     }
-  }, [supabase, fetchProfile, setUser, setLoading])
+  }, [])
 
-  const signOut = async () => {
-    console.log('→ Signing out...')
-    try {
-      await supabase.auth.signOut()
-      setUser(null)
-      setAuthUser(null)
-      console.log('✓ Signed out successfully')
-    } catch (error) {
-      console.error('✗ Sign out error:', error)
-    }
-  }
-
-  const refreshProfile = async () => {
-    console.log('→ Refreshing profile...')
-    if (authUser) {
-      await fetchProfile(authUser.id)
-    }
-  }
+  console.log('🚨 DIAGNOSTIC: Render - isLoading =', isLoading)
 
   return {
     authUser,
     user,
     isLoading,
-    signOut,
-    refreshProfile,
+    signOut: async () => {},
+    refreshProfile: async () => {},
     isAuthenticated: !!authUser,
-    hasProfile: !!user?.name,
+    hasProfile: false,
   }
 }
 
-// Stub export for legacy OTP code (not used with email magic links)
 export function useOTPAuth() {
-  console.warn('useOTPAuth is deprecated - using email magic links instead')
-  
   return {
-    sendOTP: async (phone: string) => {
-      console.error('OTP auth is disabled')
-      throw new Error('OTP authentication is no longer supported. Please use email magic links.')
-    },
-    verifyOTP: async (phone: string, otp: string) => {
-      console.error('OTP auth is disabled')
-      throw new Error('OTP authentication is no longer supported. Please use email magic links.')
-    },
+    sendOTP: async () => {},
+    verifyOTP: async () => {},
     isLoading: false,
     error: null,
     clearError: () => {},
