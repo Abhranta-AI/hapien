@@ -145,7 +145,8 @@ export default function CreateCommunityPage() {
   }
 
   if (!user) {
-    return null
+    router.push('/auth/login')
+    return <LoadingScreen message="Redirecting to login..." />
   }
 
   return (
