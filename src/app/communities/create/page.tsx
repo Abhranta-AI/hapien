@@ -49,7 +49,7 @@ const communityTypes = [
 
 export default function CreateCommunityPage() {
   const router = useRouter()
-  const { user, isLoading: authLoading } = useAuth()
+  const { authUser, user, isLoading: authLoading } = useAuth()
   const supabase = createClient()
   const coverInputRef = useRef<HTMLInputElement>(null)
 
@@ -88,7 +88,7 @@ export default function CreateCommunityPage() {
       if (coverImage) {
         const fileExt = coverImage.name.split('.').pop()
         const fileName = `${user.id}/${Date.now()}.${fileExt}`
-        
+
         const { error: uploadError } = await supabase.storage
           .from('communities')
           .upload(fileName, coverImage)
@@ -140,13 +140,30 @@ export default function CreateCommunityPage() {
     }
   }
 
+  // Redirect logic - handle auth states properly
+  useEffect(() => {
+    if (authLoading) return
+
+    // Not logged in - redirect to login
+    if (!authUser) {
+      router.push('/auth/login')
+      return
+    }
+
+    // Logged in but no profile or incomplete profile - redirect to onboarding
+    if (!user?.name) {
+      router.push('/onboarding')
+      return
+    }
+  }, [authLoading, authUser, user, router])
+
   if (authLoading) {
     return <LoadingScreen />
   }
 
-  if (!user) {
-    router.push('/auth/login')
-    return <LoadingScreen message="Redirecting to login..." />
+  // Show loading while redirect is happening
+  if (!authUser || !user?.name) {
+    return <LoadingScreen message="Redirecting..." />
   }
 
   return (
