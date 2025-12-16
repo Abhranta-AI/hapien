@@ -90,7 +90,7 @@ export default function LandingPage() {
                 transition={{ duration: 0.5, delay: 0.3 }}
               >
                 <Link href="#features">
-                  <Button variant="ghost" size="lg">
+                  <Button variant="outline" size="lg" className="border-2 border-white text-white hover:bg-white hover:text-dark-bg">
                     Learn more
                   </Button>
                 </Link>

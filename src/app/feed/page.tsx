@@ -2,32 +2,17 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2, Sparkles } from 'lucide-react'
+import { Loader2, Sparkles, User } from 'lucide-react'
 import { AppShell } from '@/components/layout'
 import { useAuth } from '@/hooks/useAuth'
-import { Button } from '@/components/ui'
+import { Button, Card } from '@/components/ui'
+import toast from 'react-hot-toast'
+import Link from 'next/link'
 
 export default function FeedPage() {
   const router = useRouter()
   const { authUser, user, isLoading: authLoading } = useAuth()
   const [error, setError] = useState<string | null>(null)
-
-  // Redirect logic - handle auth states properly
-  useEffect(() => {
-    if (authLoading) return
-
-    // Not logged in - redirect to login
-    if (!authUser) {
-      router.push('/auth/login')
-      return
-    }
-
-    // Logged in but no profile or incomplete profile - redirect to onboarding
-    if (!user?.name) {
-      router.push('/onboarding')
-      return
-    }
-  }, [authLoading, authUser, user, router])
 
   // Show loading while checking auth
   if (authLoading) {
@@ -42,6 +27,68 @@ export default function FeedPage() {
             Please wait a moment
           </p>
         </div>
+      </div>
+    )
+  }
+
+  // Show message if not logged in
+  if (!authUser) {
+    return (
+      <div className="min-h-screen bg-dark-bg flex items-center justify-center p-4">
+        <Card className="max-w-md w-full p-8 text-center">
+          <div className="w-16 h-16 bg-primary-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Sparkles className="w-8 h-8 text-primary-400" />
+          </div>
+          <h2 className="text-xl font-bold text-neutral-100 mb-2">
+            Login Required
+          </h2>
+          <p className="text-neutral-400 mb-6">
+            You need to be logged in to see your feed. Please log in or explore our communities.
+          </p>
+          <div className="flex gap-3">
+            <Link href="/" className="flex-1">
+              <Button variant="outline" className="w-full">
+                Go Home
+              </Button>
+            </Link>
+            <Link href="/auth/login" className="flex-1">
+              <Button className="w-full">
+                Log In
+              </Button>
+            </Link>
+          </div>
+        </Card>
+      </div>
+    )
+  }
+
+  // Show message if profile incomplete
+  if (!user?.name) {
+    return (
+      <div className="min-h-screen bg-dark-bg flex items-center justify-center p-4">
+        <Card className="max-w-md w-full p-8 text-center">
+          <div className="w-16 h-16 bg-primary-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <User className="w-8 h-8 text-primary-400" />
+          </div>
+          <h2 className="text-xl font-bold text-neutral-100 mb-2">
+            Complete Your Profile
+          </h2>
+          <p className="text-neutral-400 mb-6">
+            Before you can access your feed, please complete your profile setup. This will only take a moment!
+          </p>
+          <div className="flex gap-3">
+            <Link href="/" className="flex-1">
+              <Button variant="outline" className="w-full">
+                Go Home
+              </Button>
+            </Link>
+            <Link href="/onboarding" className="flex-1">
+              <Button className="w-full">
+                Complete Profile
+              </Button>
+            </Link>
+          </div>
+        </Card>
       </div>
     )
   }
