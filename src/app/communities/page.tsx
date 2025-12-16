@@ -144,10 +144,6 @@ export default function CommunitiesPage() {
     return <LoadingScreen />
   }
 
-  if (!user) {
-    return null
-  }
-
   return (
     <div className="min-h-screen bg-dark-bg">
       <div className="min-h-screen pt-16 pb-24 bg-gradient-to-b from-tertiary-50/30 via-white to-white">
