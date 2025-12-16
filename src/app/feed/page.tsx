@@ -9,66 +9,25 @@ import { Button } from '@/components/ui'
 
 export default function FeedPage() {
   const router = useRouter()
-  const { user, isLoading: authLoading, authUser } = useAuth()
-  const [feedLoading, setFeedLoading] = useState(true)
+  const { authUser, user, isLoading: authLoading } = useAuth()
   const [error, setError] = useState<string | null>(null)
-    const [redirectAttempted, setRedirectAttempted] = useState(false)
 
+  // Redirect logic - handle auth states properly
   useEffect(() => {
-    console.log('=== Feed Page Loaded ===')
-    console.log('authLoading:', authLoading)
-    console.log('authUser:', authUser)
-    console.log('user:', user)
+    if (authLoading) return
 
-    // Wait for auth to finish loading
-    if (authLoading) {
-      console.log('→ Waiting for auth...')
-      return
-    }
-
-    // Check authentication
+    // Not logged in - redirect to login
     if (!authUser) {
-      console.log('✗ No auth user, redirecting to login')
       router.push('/auth/login')
       return
     }
 
-    // Check profile completion - but only if user data has loaded
-    // If authUser exists but user is null, the profile might still be loading
-    if (authUser && user === null) {
-      // User profile not loaded yet, wait a bit more
-      // But set a safety timeout to prevent infinite loading
-      const timeout = setTimeout(() => {
-        console.log('⏱️ Feed page timeout - profile may not exist')
-        setFeedLoading(false)
-      }, 3000)
-      return () => clearTimeout(timeout)
-    }
-
-    // Now user data is loaded (could be undefined if no profile, or an object)
+    // Logged in but no profile or incomplete profile - redirect to onboarding
     if (!user?.name) {
-      console.log('✗ Profile incomplete, redirecting to onboarding')
       router.push('/onboarding')
       return
     }
-
-    // Handle redirect after successful auth
-    if (!redirectAttempted) {
-      const searchParams = new URLSearchParams(window.location.search)
-      const redirectTo = searchParams.get('from')
-
-      if (redirectTo) {
-        console.log('Redirecting to intended destination:', redirectTo)
-        setRedirectAttempted(true)
-        router.push(redirectTo)
-        return
-      }
-      setRedirectAttempted(true)
-    }
-
-    console.log('✓ User authenticated and profile complete')
-    setFeedLoading(false)
-  }, [authLoading, authUser, user, router, redirectAttempted])
+  }, [authLoading, authUser, user, router])
 
   // Show loading while checking auth
   if (authLoading || feedLoading) {
