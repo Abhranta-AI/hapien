@@ -1,12 +1,13 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { 
-  Users, 
-  Calendar, 
-  MapPin, 
-  Heart, 
+import {
+  Users,
+  Calendar,
+  MapPin,
+  Heart,
   ArrowRight,
   Sparkles,
   MessageCircle
@@ -23,8 +24,14 @@ export default function LandingPage() {
       <header className="relative z-10 px-4 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
-              <span className="text-white font-bold text-xl">H</span>
+            <div className="w-10 h-10 relative">
+              <Image
+                src="/logo.png"
+                alt="Hapien Logo"
+                width={40}
+                height={40}
+                className="w-full h-full object-contain"
+              />
             </div>
             <span className="font-display text-2xl font-bold text-neutral-100">
               Hapien
@@ -168,8 +175,14 @@ export default function LandingPage() {
       <footer className="relative z-10 px-4 py-8 border-t border-dark-border">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-              <span className="text-white font-bold">H</span>
+            <div className="w-8 h-8 relative">
+              <Image
+                src="/logo.png"
+                alt="Hapien Logo"
+                width={32}
+                height={32}
+                className="w-full h-full object-contain"
+              />
             </div>
             <span className="font-display font-semibold text-neutral-100">
               Hapien

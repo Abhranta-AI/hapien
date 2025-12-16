@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { Bell, Search, Plus, Users } from 'lucide-react'
 import { Avatar } from '@/components/ui'
@@ -45,8 +46,14 @@ export function Header({
         <div className="flex items-center gap-3">
           {isHome ? (
             <Link href="/feed" className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-xl bg-gradient-primary flex items-center justify-center">
-                <span className="text-white font-bold text-lg">H</span>
+              <div className="w-9 h-9 relative">
+                <Image
+                  src="/logo.png"
+                  alt="Hapien Logo"
+                  width={36}
+                  height={36}
+                  className="w-full h-full object-contain"
+                />
               </div>
               <span className="font-display text-xl font-bold text-neutral-100 hidden sm:block">
                 Hapien
