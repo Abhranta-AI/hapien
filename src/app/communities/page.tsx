@@ -15,7 +15,7 @@ import {
   Check,
   Clock,
 } from 'lucide-react'
-import { AppShell } from '@/components/layout'
+import { BottomNav } from '@/components/layout'
 import { Button, Card, Badge, Input } from '@/components/ui'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs'
 import { LoadingScreen, LoadingCard } from '@/components/ui/Loading'
@@ -149,7 +149,7 @@ export default function CommunitiesPage() {
   }
 
   return (
-    <AppShell>
+    <div className="min-h-screen bg-dark-bg">
       <div className="min-h-screen pt-16 pb-24 bg-gradient-to-b from-tertiary-50/30 via-white to-white">
         <div className="max-w-4xl mx-auto px-4 py-6">
           {/* Header */}
@@ -350,6 +350,7 @@ export default function CommunitiesPage() {
           )}
         </div>
       </div>
-    </AppShell>
+      <BottomNav />
+    </div>
   )
 }
