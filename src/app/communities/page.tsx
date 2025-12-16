@@ -150,7 +150,7 @@ export default function CommunitiesPage() {
 
   return (
     <AppShell>
-      <main className="min-h-screen pt-16 pb-24 bg-gradient-to-b from-tertiary-50/30 via-white to-white">
+      <div className="min-h-screen pt-16 pb-24 bg-gradient-to-b from-tertiary-50/30 via-white to-white">
         <div className="max-w-4xl mx-auto px-4 py-6">
           {/* Header */}
           <div className="flex items-start justify-between mb-6">
@@ -349,7 +349,7 @@ export default function CommunitiesPage() {
             </AnimatePresence>
           )}
         </div>
-      </main>
+      </div>
     </AppShell>
   )
 }
