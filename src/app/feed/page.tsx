@@ -30,7 +30,7 @@ export default function FeedPage() {
   }, [authLoading, authUser, user, router])
 
   // Show loading while checking auth
-  if (authLoading || feedLoading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-dark-bg flex items-center justify-center">
         <div className="text-center">
@@ -113,15 +113,6 @@ export default function FeedPage() {
             </div>
           </div>
 
-          {/* Debug Info (temporary - remove later) */}
-          <div className="bg-dark-hover rounded-2xl p-4 text-xs text-neutral-500 border border-dark-border">
-            <p className="font-medium text-neutral-300 mb-2">Debug Info:</p>
-            <p>✓ Authenticated: {authUser ? 'Yes' : 'No'}</p>
-            <p>✓ Profile loaded: {user ? 'Yes' : 'No'}</p>
-            <p>✓ User ID: {authUser?.id?.slice(0, 8)}...</p>
-            <p>✓ Name: {user?.name}</p>
-            <p>✓ Email: {user?.email || authUser?.email}</p>
-          </div>
         </div>
       </main>
 

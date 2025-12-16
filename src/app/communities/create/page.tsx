@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
@@ -197,14 +197,14 @@ export default function CreateCommunityPage() {
           <div className="flex items-center gap-2 mb-8">
             <div className={cn(
               'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium',
-              step >= 1 ? 'bg-primary-900/300 text-white' : 'bg-neutral-200 text-neutral-500'
+              step >= 1 ? 'bg-primary-500 text-white' : 'bg-neutral-200 text-neutral-500'
             )}>
               1
             </div>
-            <div className={cn('flex-1 h-1 rounded', step >= 2 ? 'bg-primary-900/300' : 'bg-neutral-200')} />
+            <div className={cn('flex-1 h-1 rounded', step >= 2 ? 'bg-primary-500' : 'bg-neutral-200')} />
             <div className={cn(
               'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium',
-              step >= 2 ? 'bg-primary-900/300 text-white' : 'bg-neutral-200 text-neutral-500'
+              step >= 2 ? 'bg-primary-500 text-white' : 'bg-neutral-200 text-neutral-500'
             )}>
               2
             </div>
@@ -252,7 +252,7 @@ export default function CreateCommunityPage() {
                       </div>
                       <div className={cn(
                         'w-5 h-5 rounded-full border-2 flex items-center justify-center',
-                        isSelected ? 'border-primary-500 bg-primary-900/300' : 'border-neutral-300'
+                        isSelected ? 'border-primary-500 bg-primary-500' : 'border-neutral-300'
                       )}>
                         {isSelected && (
                           <div className="w-2 h-2 rounded-full bg-dark-card" />

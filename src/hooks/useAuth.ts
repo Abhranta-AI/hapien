@@ -10,20 +10,15 @@ export function useAuth() {
   const supabase = createClient()
 
   useEffect(() => {
-    console.log('🔵 useAuth: Effect started')
-
-        // Safety timeout - force loading to false after 5 seconds
+    // Safety timeout - force loading to false after 5 seconds
     const timeoutId = setTimeout(() => {
-      console.log('⏱️ useAuth timeout reached - forcing isLoading to false')
       setIsLoading(false)
     }, 5000)
 
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('🟢 Session result:', session ? 'Has session' : 'No session')
       setAuthUser(session?.user ?? null)
 
       if (session?.user) {
-        console.log('🟠 Fetching profile for:', session.user.email)
         // Fetch user profile
         supabase
           .from('users')
@@ -31,31 +26,26 @@ export function useAuth() {
           .eq('id', session.user.id)
           .maybeSingle()
           .then(({ data }) => {
-            console.log('🟡 Profile loaded:', data?.name)
             setUser(data)
             clearTimeout(timeoutId)
-            setIsLoading(false) // ← Set loading false after profile loads
+            setIsLoading(false)
           })
-          .catch((err) => {
-            console.error('🔴 Profile fetch error:', err)
+          .catch(() => {
             clearTimeout(timeoutId)
-            setIsLoading(false) // ← Set loading false even on error
+            setIsLoading(false)
           })
       } else {
-        console.log('🔵 NO session, setting isLoading to false')
         clearTimeout(timeoutId)
-        setIsLoading(false) // ← Set loading false if no session
+        setIsLoading(false)
       }
-    }).catch((err) => {
-      console.error('🔴 Session error:', err)
+    }).catch(() => {
       clearTimeout(timeoutId)
-      setIsLoading(false) // ← Set loading false on session error
+      setIsLoading(false)
     })
 
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('🟣 Auth state changed:', event)
         setAuthUser(session?.user ?? null)
 
         if (session?.user) {
@@ -82,21 +72,21 @@ export function useAuth() {
   const refreshProfile = useCallback(async () => {
     if (!authUser?.id) return
 
-    console.log('🔄 Refreshing profile for:', authUser.id)
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('users')
       .select('*')
       .eq('id', authUser.id)
       .maybeSingle()
 
-    if (error) {
-      console.error('🔴 Profile refresh error:', error)
-      return
-    }
-
-    console.log('✓ Profile refreshed:', data?.name)
     setUser(data)
   }, [authUser?.id, supabase])
 
-  return { authUser, user, isLoading, refreshProfile }
+  // Function to sign out
+  const signOut = useCallback(async () => {
+    await supabase.auth.signOut()
+    setAuthUser(null)
+    setUser(null)
+  }, [supabase])
+
+  return { authUser, user, isLoading, refreshProfile, signOut }
 }
