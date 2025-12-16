@@ -36,7 +36,8 @@ import toast from 'react-hot-toast'
 type ProfileTab = 'posts' | 'hangouts' | 'communities'
 
 export default function ProfilePage() {
-  const { user, signOut, isLoading: authLoading } = useAuth()
+  const { authUser, user, signOut, isLoading: authLoading } = useAuth()
+  const router = useRouter()
   const supabase = createClient()
 
   const [activeTab, setActiveTab] = useState<ProfileTab>('posts')
@@ -163,11 +164,33 @@ export default function ProfilePage() {
     }
   }
 
+  // Redirect logic - handle auth states properly
+  useEffect(() => {
+    if (authLoading) return
+
+    // Not logged in - redirect to login
+    if (!authUser) {
+      router.push('/auth/login')
+      return
+    }
+
+    // Logged in but no profile or incomplete profile - redirect to onboarding
+    if (!user?.name) {
+      router.push('/onboarding')
+      return
+    }
+  }, [authLoading, authUser, user, router])
+
   if (authLoading) {
     return <LoadingScreen />
   }
 
-  if (!user || !profile) {
+  // Show loading while redirect is happening
+  if (!authUser || !user?.name) {
+    return <LoadingScreen message="Redirecting..." />
+  }
+
+  if (!profile) {
     return <LoadingScreen message="Loading profile..." />
   }
 
