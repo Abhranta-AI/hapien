@@ -57,7 +57,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#0a7ea4',
+  themeColor: '#5d146f',
 }
 
 export default function RootLayout({
@@ -79,22 +79,22 @@ export default function RootLayout({
           toastOptions={{
             duration: 4000,
             style: {
-              background: '#111827',
-              color: '#f1f5f9',
+              background: '#323232',
+              color: '#ffffff',
               borderRadius: '12px',
               padding: '12px 16px',
-              border: '1px solid #1e293b',
+              border: '1px solid #464646',
             },
             success: {
               iconTheme: {
-                primary: '#0ea5e9',
-                secondary: '#f1f5f9',
+                primary: '#727ef5',
+                secondary: '#ffffff',
               },
             },
             error: {
               iconTheme: {
-                primary: '#f97316',
-                secondary: '#f1f5f9',
+                primary: '#aa31ac',
+                secondary: '#ffffff',
               },
             },
           }}

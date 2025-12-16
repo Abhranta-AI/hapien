@@ -4,8 +4,8 @@
   "description": "A private, hyperlocal social network that nurtures connections through shared experiences.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0f1e",
-  "theme_color": "#0a7ea4",
+  "background_color": "#282828",
+  "theme_color": "#5d146f",
   "icons": [
     {
       "src": "/favicon-16x16.png",
