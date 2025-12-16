@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2, Sparkles } from 'lucide-react'
-import { AppShell, Header, BottomNav } from '@/components/layout'
+import { AppShell } from '@/components/layout'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui'
 
@@ -124,8 +124,6 @@ export default function FeedPage() {
   // Main feed content
   return (
     <AppShell>
-      <Header />
-
       <main className="min-h-screen pt-16 pb-24 bg-dark-bg">
         <div className="max-w-2xl mx-auto px-4 py-6">
           {/* Welcome Message */}
@@ -168,7 +166,6 @@ export default function FeedPage() {
         </div>
       </main>
 
-      <BottomNav />
     </AppShell>
   )
 }
