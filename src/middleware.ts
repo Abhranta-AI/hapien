@@ -99,16 +99,10 @@ export async function middleware(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    // If profile is incomplete, redirect to onboarding (except if already there)
-    if (!profile?.name && pathname !== '/onboarding') {
+    // If profile is incomplete, redirect to onboarding (except if already there or on auth pages)
+    if (!profile?.name && pathname !== '/onboarding' && !pathname.startsWith('/auth/')) {
       console.log('Profile incomplete, redirecting to onboarding')
       return NextResponse.redirect(new URL('/onboarding', request.url))
-    }
-
-    // If profile is complete but trying to access auth pages, redirect to feed
-    if (profile?.name && isPublicRoute && pathname !== '/') {
-      console.log('Profile complete, redirecting to feed')
-      return NextResponse.redirect(new URL('/feed', request.url))
     }
   }
 
