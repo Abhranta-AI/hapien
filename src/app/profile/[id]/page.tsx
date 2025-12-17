@@ -16,7 +16,7 @@ import {
   Grid3X3,
   MapPin,
 } from 'lucide-react'
-import { AppShell, Header, BottomNav } from '@/components/layout'
+import { AppShell } from '@/components/layout'
 import { Avatar, Button, Card, Badge } from '@/components/ui'
 import { PostCard, WallPost } from '@/components/feed'
 import { HangoutCard } from '@/components/hangouts/HangoutCard'
@@ -362,7 +362,6 @@ export default function UserProfilePage() {
   if (!currentUser || !profile) {
     return (
       <AppShell>
-        <Header />
         <main className="min-h-screen pt-16 pb-24 flex items-center justify-center">
           <EmptyState
             title="User not found"
@@ -370,16 +369,14 @@ export default function UserProfilePage() {
             action={{ label: "Go Home", href: "/feed" }}
           />
         </main>
-        <BottomNav />
       </AppShell>
     )
   }
 
   return (
     <AppShell>
-      <Header />
 
-      <main className="min-h-screen pt-16 pb-24 bg-gradient-to-b from-primary-50/30 via-white to-white">
+      <main className="min-h-screen pt-16 pb-24 bg-dark-bg">
         {/* Profile Header */}
         <div className="bg-gradient-to-br from-primary-500 to-primary-700 pt-8 pb-20 px-4">
           <div className="max-w-2xl mx-auto">
@@ -659,7 +656,6 @@ export default function UserProfilePage() {
         </div>
       </main>
 
-      <BottomNav />
     </AppShell>
   )
 }

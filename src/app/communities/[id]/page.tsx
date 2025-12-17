@@ -18,7 +18,7 @@ import {
   Settings,
   Grid3X3,
 } from 'lucide-react'
-import { AppShell, Header, BottomNav, FloatingActionButton } from '@/components/layout'
+import { AppShell, FloatingActionButton } from '@/components/layout'
 import { Avatar, AvatarGroup, Button, Card, Badge } from '@/components/ui'
 import { PostCard, CreatePost } from '@/components/feed'
 import { HangoutCard } from '@/components/hangouts/HangoutCard'
@@ -218,7 +218,6 @@ export default function CommunityDetailPage() {
   if (!user || !community) {
     return (
       <AppShell>
-        <Header />
         <main className="min-h-screen pt-16 pb-24 flex items-center justify-center">
           <EmptyState
             icon={Home}
@@ -227,7 +226,6 @@ export default function CommunityDetailPage() {
             action={{ label: "Browse Communities", href: "/communities" }}
           />
         </main>
-        <BottomNav />
       </AppShell>
     )
   }
@@ -240,9 +238,8 @@ export default function CommunityDetailPage() {
 
   return (
     <AppShell>
-      <Header />
 
-      <main className="min-h-screen pt-16 pb-24 bg-gradient-to-b from-tertiary-50/30 via-white to-white">
+      <main className="min-h-screen pt-16 pb-24 bg-dark-bg">
         {/* Cover & Header */}
         <div className={cn(
           'h-48 bg-gradient-to-br relative',
@@ -478,7 +475,6 @@ export default function CommunityDetailPage() {
       </main>
 
       {isMember && <FloatingActionButton />}
-      <BottomNav />
     </AppShell>
   )
 }

@@ -11,7 +11,7 @@ import {
   ChevronDown,
   Trash2,
 } from 'lucide-react'
-import { AppShell, Header, BottomNav } from '@/components/layout'
+import { AppShell } from '@/components/layout'
 import { Avatar, Button, Card, Modal } from '@/components/ui'
 import { LoadingScreen } from '@/components/ui/Loading'
 import { createClient } from '@/lib/supabase/client'
@@ -198,9 +198,8 @@ export default function EditPostPage({ params }: EditPostPageProps) {
 
   return (
     <AppShell>
-      <Header />
 
-      <main className="min-h-screen pt-16 pb-24 bg-gradient-to-b from-primary-50/30 via-white to-white">
+      <main className="min-h-screen pt-16 pb-24 bg-dark-bg">
         <div className="max-w-2xl mx-auto px-4 py-6">
           {/* Back button */}
           <Link
@@ -413,7 +412,6 @@ export default function EditPostPage({ params }: EditPostPageProps) {
         </div>
       </Modal>
 
-      <BottomNav />
     </AppShell>
   )
 }

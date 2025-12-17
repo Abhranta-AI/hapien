@@ -16,7 +16,7 @@ import {
   Check,
   Clock,
 } from 'lucide-react'
-import { AppShell, Header, BottomNav } from '@/components/layout'
+import { AppShell } from '@/components/layout'
 import { Avatar, Button, Card, Badge } from '@/components/ui'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs'
 import { LoadingCard, LoadingScreen } from '@/components/ui/Loading'
@@ -440,9 +440,8 @@ function SearchContent() {
 
   return (
     <AppShell>
-      <Header />
 
-      <main className="min-h-screen pt-16 pb-24 bg-gradient-to-b from-primary-50/30 via-white to-white">
+      <main className="min-h-screen pt-16 pb-24 bg-dark-bg">
         <div className="max-w-2xl mx-auto px-4 py-6">
           {/* Search Input */}
           <div className="mb-6">
@@ -531,7 +530,6 @@ function SearchContent() {
         </div>
       </main>
 
-      <BottomNav />
     </AppShell>
   )
 }

@@ -57,7 +57,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#5d146f',
+  themeColor: '#F59E0B', // Amber primary
 }
 
 export default function RootLayout({
@@ -70,7 +70,16 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        {/* Plus Jakarta Sans - Body font */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+        {/* Fraunces - Display font */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&display=swap"
+          rel="stylesheet"
+        />
       </head>
       <body>
         {children}
@@ -79,22 +88,32 @@ export default function RootLayout({
           toastOptions={{
             duration: 4000,
             style: {
-              background: '#323232',
-              color: '#ffffff',
-              borderRadius: '12px',
-              padding: '12px 16px',
-              border: '1px solid #464646',
+              background: '#FFFFFF',
+              color: '#1C1917',
+              borderRadius: '16px',
+              padding: '14px 18px',
+              border: '1px solid #E7E5E4',
+              boxShadow: '0 4px 16px -4px rgba(28, 25, 23, 0.1)',
+              fontFamily: 'Plus Jakarta Sans, system-ui, sans-serif',
             },
             success: {
               iconTheme: {
-                primary: '#727ef5',
-                secondary: '#ffffff',
+                primary: '#22C55E', // Sage
+                secondary: '#FFFFFF',
+              },
+              style: {
+                background: '#F0FDF4',
+                borderColor: '#BBF7D0',
               },
             },
             error: {
               iconTheme: {
-                primary: '#aa31ac',
-                secondary: '#ffffff',
+                primary: '#F43F5E', // Rose
+                secondary: '#FFFFFF',
+              },
+              style: {
+                background: '#FFF1F2',
+                borderColor: '#FECDD3',
               },
             },
           }}

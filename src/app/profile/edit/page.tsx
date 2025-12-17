@@ -4,31 +4,24 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { ArrowLeft, Camera, Upload, X, Check, Loader2 } from 'lucide-react'
-import { AppShell, Header, BottomNav } from '@/components/layout'
-import { Avatar, Button, Card, Input, Badge } from '@/components/ui'
+import { AppShell } from '@/components/layout'
+import { Avatar, Button, Card, Input } from '@/components/ui'
 import { LoadingScreen } from '@/components/ui/Loading'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/useAuth'
 import { User } from '@/types/database'
-import { cn } from '@/utils/helpers'
 import toast from 'react-hot-toast'
 
-const INTERESTS = [
-  'Sports', 'Fitness', 'Food', 'Travel', 'Movies', 'Music',
-  'Reading', 'Gaming', 'Photography', 'Art', 'Tech', 'Fashion',
-  'Nature', 'Pets', 'Cooking', 'Dancing', 'Yoga', 'Meditation'
-]
 
 export default function EditProfilePage() {
   const router = useRouter()
-  const { user, isLoading: authLoading } = useAuth()
+  const { authUser, user, isLoading: authLoading } = useAuth()
   const supabase = createClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [profile, setProfile] = useState<User | null>(null)
   const [name, setName] = useState('')
   const [bio, setBio] = useState('')
-  const [interests, setInterests] = useState<string[]>([])
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
@@ -52,7 +45,6 @@ export default function EditProfilePage() {
         setProfile(profileData)
         setName(profileData.name || '')
         setBio(profileData.bio || '')
-        setInterests(profileData.interests || [])
         setAvatarUrl(profileData.avatar_url)
       } catch (error) {
         console.error('Error fetching profile:', error)
@@ -79,14 +71,6 @@ export default function EditProfilePage() {
     setAvatarPreview(previewUrl)
   }
 
-  const toggleInterest = (interest: string) => {
-    setInterests(prev => 
-      prev.includes(interest)
-        ? prev.filter(i => i !== interest)
-        : [...prev, interest]
-    )
-  }
-
   const handleSave = async () => {
     if (!user || !name.trim()) {
       toast.error('Name is required')
@@ -98,42 +82,68 @@ export default function EditProfilePage() {
     try {
       let finalAvatarUrl = avatarUrl
 
-      // Upload new avatar if selected
+      // Upload new avatar if selected (non-blocking - continue even if fails)
       if (avatarFile) {
-        const fileExt = avatarFile.name.split('.').pop()
-        const fileName = `${user.id}/${Date.now()}.${fileExt}`
-        
-        const { error: uploadError } = await supabase.storage
-          .from('avatars')
-          .upload(fileName, avatarFile, { upsert: true })
+        try {
+          const fileExt = avatarFile.name.split('.').pop()
+          const fileName = `${authUser?.id || user.id}/${Date.now()}.${fileExt}`
 
-        if (uploadError) throw uploadError
+          const { error: uploadError } = await supabase.storage
+            .from('avatars')
+            .upload(fileName, avatarFile, { upsert: true })
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('avatars')
-          .getPublicUrl(fileName)
-
-        finalAvatarUrl = publicUrl
+          if (uploadError) {
+            console.error('Avatar upload failed:', uploadError)
+            toast.error('Avatar upload failed, but saving other changes...')
+            // Continue without updating avatar URL
+          } else {
+            const { data: { publicUrl } } = supabase.storage
+              .from('avatars')
+              .getPublicUrl(fileName)
+            finalAvatarUrl = publicUrl
+          }
+        } catch (avatarError) {
+          console.error('Avatar upload error:', avatarError)
+          toast.error('Avatar upload failed, but saving other changes...')
+          // Continue without updating avatar URL
+        }
       }
 
-      // Update profile
-      const { error } = await (supabase
+      // Update profile using upsert to handle both insert and update cases
+      const userId = authUser?.id || user.id
+      console.log('Attempting to upsert user:', userId)
+      console.log('Update data:', {
+        name: name.trim(),
+        bio: bio.trim() || null,
+        avatar_url: finalAvatarUrl,
+      })
+
+      const { data, error } = await (supabase
         .from('users') as any)
-        .update({
+        .upsert({
+          id: userId,
+          email: authUser?.email || profile?.email,
           name: name.trim(),
           bio: bio.trim() || null,
           avatar_url: finalAvatarUrl,
-          interests,
-        })
-        .eq('id', user.id)
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'id' })
+        .select()
 
-      if (error) throw error
+      console.log('Upsert response - data:', data, 'error:', error)
+
+      if (error) {
+        console.error('Upsert error:', error)
+        throw new Error(error.message || 'Database update failed')
+      }
 
       toast.success('Profile updated!')
       router.push('/profile')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating profile:', error)
-      toast.error('Failed to update profile')
+      console.error('Error message:', error?.message)
+      console.error('Error details:', JSON.stringify(error, null, 2))
+      toast.error(`Failed to update profile: ${error?.message || 'Unknown error'}`)
     } finally {
       setIsSaving(false)
     }
@@ -149,9 +159,8 @@ export default function EditProfilePage() {
 
   return (
     <AppShell>
-      <Header />
 
-      <main className="min-h-screen pt-16 pb-24 bg-gradient-to-b from-primary-50/30 via-white to-white">
+      <main className="min-h-screen pt-16 pb-24 bg-dark-bg">
         <div className="max-w-2xl mx-auto px-4 py-6">
           {/* Back Button */}
           <button
@@ -283,42 +292,6 @@ export default function EditProfilePage() {
               </div>
             </Card>
 
-            {/* Interests */}
-            <Card variant="elevated" padding="lg">
-              <h2 className="text-lg font-semibold text-neutral-100 mb-2">
-                Interests
-              </h2>
-              <p className="text-sm text-neutral-500 mb-4">
-                Select your interests to connect with like-minded people
-              </p>
-
-              <div className="flex flex-wrap gap-2">
-                {INTERESTS.map((interest) => {
-                  const isSelected = interests.includes(interest)
-                  return (
-                    <button
-                      key={interest}
-                      onClick={() => toggleInterest(interest)}
-                      className={cn(
-                        'px-4 py-2 rounded-full text-sm font-medium transition-all',
-                        isSelected
-                          ? 'bg-primary-900/300 text-white'
-                          : 'bg-dark-elevated text-neutral-400 hover:bg-dark-hover'
-                      )}
-                    >
-                      {interest}
-                    </button>
-                  )
-                })}
-              </div>
-
-              {interests.length > 0 && (
-                <p className="text-sm text-neutral-500 mt-4">
-                  {interests.length} {interests.length === 1 ? 'interest' : 'interests'} selected
-                </p>
-              )}
-            </Card>
-
             {/* Save Button */}
             <div className="flex gap-4">
               <Button
@@ -347,7 +320,6 @@ export default function EditProfilePage() {
         </div>
       </main>
 
-      <BottomNav />
     </AppShell>
   )
 }

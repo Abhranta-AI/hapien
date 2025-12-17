@@ -15,7 +15,7 @@ import {
   CheckCheck,
   ArrowLeft,
 } from 'lucide-react'
-import { AppShell, Header, BottomNav } from '@/components/layout'
+import { AppShell } from '@/components/layout'
 import { Avatar, Button, Card } from '@/components/ui'
 import { LoadingScreen, LoadingCard } from '@/components/ui/Loading'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -170,9 +170,8 @@ export default function NotificationsPage() {
 
   return (
     <AppShell>
-      <Header />
 
-      <main className="min-h-screen pt-16 pb-24 bg-gradient-to-b from-primary-50/30 via-white to-white">
+      <main className="min-h-screen pt-16 pb-24 bg-dark-bg">
         <div className="max-w-2xl mx-auto px-4 py-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
@@ -282,7 +281,6 @@ export default function NotificationsPage() {
         </div>
       </main>
 
-      <BottomNav />
     </AppShell>
   )
 }

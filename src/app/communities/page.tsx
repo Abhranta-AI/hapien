@@ -146,7 +146,7 @@ export default function CommunitiesPage() {
 
   return (
     <div className="min-h-screen bg-dark-bg">
-      <div className="min-h-screen pt-16 pb-24 bg-gradient-to-b from-tertiary-50/30 via-white to-white">
+      <div className="min-h-screen pt-16 pb-24 bg-dark-bg">
         <div className="max-w-4xl mx-auto px-4 py-6">
           {/* Header */}
           <div className="flex items-start justify-between mb-6">

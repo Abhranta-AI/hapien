@@ -16,8 +16,8 @@ import {
   LogOut,
   MapPin,
 } from 'lucide-react'
-import { AppShell, Header, BottomNav } from '@/components/layout'
-import { Avatar, Button, Card, Badge } from '@/components/ui'
+import { AppShell } from '@/components/layout'
+import { Avatar, Button, Card } from '@/components/ui'
 import { PostCard, CreatePost } from '@/components/feed'
 import { HangoutCard } from '@/components/hangouts/HangoutCard'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs'
@@ -46,7 +46,7 @@ export default function ProfilePage() {
   const [posts, setPosts] = useState<PostWithRelations[]>([])
   const [hangouts, setHangouts] = useState<HangoutWithRelations[]>([])
   const [communities, setCommunities] = useState<Community[]>([])
-  const [friendsCount, setFriendsCount] = useState(0)
+  const [connectsCount, setConnectsCount] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [refreshKey, setRefreshKey] = useState(0)
 
@@ -72,7 +72,7 @@ export default function ProfilePage() {
         .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`)
         .eq('status', 'accepted')
 
-      setFriendsCount(friendCount || 0)
+      setConnectsCount(friendCount || 0)
 
       // Fetch user's posts
       const { data: postsData } = await supabase
@@ -237,9 +237,7 @@ export default function ProfilePage() {
 
   return (
     <AppShell>
-      <Header />
-
-      <main className="min-h-screen pt-16 pb-24 bg-gradient-to-b from-primary-50/30 via-white to-white">
+      <main className="min-h-screen pt-16 pb-24 bg-dark-bg">
         {/* Profile Header */}
         <div className="bg-gradient-to-br from-primary-500 to-primary-700 pt-8 pb-20 px-4">
           <div className="max-w-2xl mx-auto">
@@ -283,8 +281,8 @@ export default function ProfilePage() {
           <Card variant="elevated" className="p-6">
             <div className="flex items-center justify-around">
               <Link href="/friends" className="text-center hover:opacity-80 transition-opacity">
-                <p className="text-2xl font-bold text-neutral-100">{friendsCount}</p>
-                <p className="text-sm text-neutral-500">{pluralize(friendsCount, 'Friend')}</p>
+                <p className="text-2xl font-bold text-neutral-100">{connectsCount}</p>
+                <p className="text-sm text-neutral-500">{pluralize(connectsCount, 'Connect')}</p>
               </Link>
               <div className="h-10 w-px bg-neutral-200" />
               <div className="text-center">
@@ -298,19 +296,6 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Interests */}
-            {profile.interests && profile.interests.length > 0 && (
-              <div className="mt-6 pt-6 border-t border-dark-border">
-                <p className="text-sm text-neutral-500 mb-3">Interests</p>
-                <div className="flex flex-wrap gap-2">
-                  {profile.interests.map(interest => (
-                    <Badge key={interest} variant="primary" size="sm">
-                      {interest}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
           </Card>
         </div>
 
@@ -448,8 +433,6 @@ export default function ProfilePage() {
           </Tabs>
         </div>
       </main>
-
-      <BottomNav />
     </AppShell>
   )
 }

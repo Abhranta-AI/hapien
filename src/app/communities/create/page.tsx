@@ -14,7 +14,7 @@ import {
   Users,
   User,
 } from 'lucide-react'
-import { AppShell, Header, BottomNav } from '@/components/layout'
+import { AppShell } from '@/components/layout'
 import { Button, Card, Input, Textarea } from '@/components/ui'
 import { LoadingScreen } from '@/components/ui/Loading'
 import { createClient } from '@/lib/supabase/client'
@@ -83,60 +83,124 @@ export default function CreateCommunityPage() {
 
     setIsSubmitting(true)
 
+    // Helper function to add timeout to promises
+    const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> => {
+      return Promise.race([
+        promise,
+        new Promise<T>((_, reject) =>
+          setTimeout(() => reject(new Error('TIMEOUT')), ms)
+        )
+      ])
+    }
+
     try {
       let coverImageUrl: string | null = null
 
-      // Upload cover image if selected
+      // Upload cover image if selected (with timeout, non-blocking)
       if (coverImage) {
-        const fileExt = coverImage.name.split('.').pop()
-        const fileName = `${user.id}/${Date.now()}.${fileExt}`
+        try {
+          const fileExt = coverImage.name.split('.').pop()
+          const fileName = `${user.id}/${Date.now()}.${fileExt}`
 
-        const { error: uploadError } = await supabase.storage
-          .from('communities')
-          .upload(fileName, coverImage)
+          const { error: uploadError } = await withTimeout(
+            supabase.storage.from('communities').upload(fileName, coverImage),
+            15000
+          )
 
-        if (uploadError) throw uploadError
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('communities')
-          .getPublicUrl(fileName)
-
-        coverImageUrl = publicUrl
+          if (!uploadError) {
+            const { data: { publicUrl } } = supabase.storage
+              .from('communities')
+              .getPublicUrl(fileName)
+            coverImageUrl = publicUrl
+          }
+        } catch (uploadErr) {
+          console.error('Cover image upload failed:', uploadErr)
+          // Continue without cover image
+        }
       }
 
-      // Create community
-      const { data: community, error: communityError } = await supabase
-        .from('communities')
-        .insert({
-          name: name.trim(),
-          type: selectedType,
-          description: description.trim() || null,
-          cover_image_url: coverImageUrl,
-          admin_id: user.id,
-          location: address || city ? {
-            address: address.trim() || null,
-            city: city.trim() || null,
-          } : null,
-          member_count: 1,
-        } as any)
-        .select()
-        .single()
+      // Create community with direct fetch using user's access token
+      console.log('Creating community...')
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-      if (communityError) throw communityError
+      // Get user's access token for authenticated requests
+      const { data: { session } } = await supabase.auth.getSession()
+      const accessToken = session?.access_token
 
-      // Add creator as admin member
-      await supabase.from('community_memberships').insert({
-        user_id: user.id,
-        community_id: (community as any).id,
-        status: 'approved',
-        role: 'admin',
-      } as any)
+      if (!accessToken) {
+        throw new Error('Not authenticated. Please log in again.')
+      }
+
+      const communityData = {
+        name: name.trim(),
+        type: selectedType,
+        description: description.trim() || null,
+        cover_image_url: coverImageUrl,
+        admin_id: user.id,
+        location: address || city ? {
+          address: address.trim() || null,
+          city: city.trim() || null,
+        } : null,
+        member_count: 1,
+      }
+
+      const response = await withTimeout(
+        fetch(`${supabaseUrl}/rest/v1/communities`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': supabaseKey!,
+            'Authorization': `Bearer ${accessToken}`,
+            'Prefer': 'return=representation',
+          },
+          body: JSON.stringify(communityData),
+        }),
+        15000
+      )
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('Community creation error:', response.status, errorText)
+        throw new Error(`Failed to create community: ${errorText}`)
+      }
+
+      const [community] = await response.json()
+      console.log('Community created:', community)
+
+      // Add creator as admin member (with direct fetch)
+      try {
+        await withTimeout(
+          fetch(`${supabaseUrl}/rest/v1/community_memberships`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': supabaseKey!,
+              'Authorization': `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify({
+              user_id: user.id,
+              community_id: community.id,
+              status: 'approved',
+              role: 'admin',
+            }),
+          }),
+          10000
+        )
+      } catch (memberErr) {
+        console.error('Membership creation failed:', memberErr)
+        // Continue anyway - community was created
+      }
 
       toast.success('Community created successfully!')
       router.push(`/communities/${(community as any).id}`)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating community:', error)
-      toast.error('Failed to create community')
+      if (error.message === 'TIMEOUT') {
+        toast.error('Database is not responding. Please try again.')
+      } else {
+        toast.error('Failed to create community')
+      }
     } finally {
       setIsSubmitting(false)
     }
@@ -210,9 +274,8 @@ export default function CreateCommunityPage() {
 
   return (
     <AppShell>
-      <Header />
 
-      <main className="min-h-screen pt-16 pb-24 bg-gradient-to-b from-primary-50/30 via-white to-white">
+      <main className="min-h-screen pt-16 pb-24 bg-dark-bg">
         <div className="max-w-2xl mx-auto px-4 py-6">
           {/* Back button */}
           <Link
@@ -432,7 +495,6 @@ export default function CreateCommunityPage() {
         </div>
       </main>
 
-      <BottomNav />
     </AppShell>
   )
 }

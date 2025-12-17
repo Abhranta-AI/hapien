@@ -13,7 +13,7 @@ import {
   ChevronRight,
   Sparkles,
 } from 'lucide-react'
-import { AppShell, Header, BottomNav } from '@/components/layout'
+import { AppShell } from '@/components/layout'
 import { HangoutCard } from '@/components/hangouts/HangoutCard'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs'
 import { Button } from '@/components/ui/Button'
@@ -140,9 +140,8 @@ export default function HangoutsPage() {
 
   return (
     <AppShell>
-      <Header />
 
-      <main className="min-h-screen pt-16 pb-24 bg-gradient-to-b from-secondary-50/30 via-white to-white">
+      <main className="min-h-screen pt-16 pb-24 bg-dark-bg">
         <div className="max-w-4xl mx-auto px-4 py-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
@@ -328,7 +327,6 @@ export default function HangoutsPage() {
         </div>
       </main>
 
-      <BottomNav />
     </AppShell>
   )
 }

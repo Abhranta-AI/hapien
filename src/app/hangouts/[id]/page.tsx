@@ -20,7 +20,7 @@ import {
   X,
   Trash2,
 } from 'lucide-react'
-import { AppShell, Header, BottomNav } from '@/components/layout'
+import { AppShell } from '@/components/layout'
 import { Avatar, AvatarGroup } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -201,7 +201,6 @@ export default function HangoutDetailPage() {
   if (!hangout) {
     return (
       <AppShell>
-        <Header />
         <main className="min-h-screen pt-16 pb-24 flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-xl font-semibold text-neutral-100">Hangout not found</h1>
@@ -210,7 +209,6 @@ export default function HangoutDetailPage() {
             </Link>
           </div>
         </main>
-        <BottomNav />
       </AppShell>
     )
   }
@@ -225,8 +223,6 @@ export default function HangoutDetailPage() {
 
   return (
     <AppShell>
-      <Header />
-
       <main className="min-h-screen pt-16 pb-24">
         {/* Cover Image */}
         <div className={cn(
@@ -556,8 +552,6 @@ export default function HangoutDetailPage() {
           </Card>
         </div>
       </main>
-
-      <BottomNav />
     </AppShell>
   )
 }

@@ -16,7 +16,7 @@ import {
   Trash2,
   Edit2,
 } from 'lucide-react'
-import { AppShell, Header, BottomNav } from '@/components/layout'
+import { AppShell } from '@/components/layout'
 import { Avatar, Card, Button } from '@/components/ui'
 import { LoadingScreen } from '@/components/ui/Loading'
 import { createClient } from '@/lib/supabase/client'
@@ -230,7 +230,7 @@ export default function PostPage({ params }: PostPageProps) {
         </div>
       </header>
 
-      <main className="min-h-screen pt-0 pb-24 bg-gradient-to-b from-primary-50/30 via-white to-white">
+      <main className="min-h-screen pt-0 pb-24 bg-dark-bg">
         <div className="max-w-2xl mx-auto px-4 py-6">
           {/* Post Card */}
           <Card variant="elevated" padding="none" className="overflow-hidden">
@@ -470,7 +470,6 @@ export default function PostPage({ params }: PostPageProps) {
         </div>
       </main>
 
-      <BottomNav />
     </AppShell>
   )
 }

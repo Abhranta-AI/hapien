@@ -12,7 +12,7 @@ import {
   Users,
   ArrowLeft,
 } from 'lucide-react'
-import { AppShell, Header, BottomNav } from '@/components/layout'
+import { AppShell } from '@/components/layout'
 import { Avatar, Button, Card, Input } from '@/components/ui'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs'
 import { LoadingScreen, LoadingCard } from '@/components/ui/Loading'
@@ -22,28 +22,28 @@ import { useAuth } from '@/hooks/useAuth'
 import { User, Friendship } from '@/types/database'
 import toast from 'react-hot-toast'
 
-type FriendsTab = 'friends' | 'requests' | 'sent' | 'discover'
+type ConnectsTab = 'connects' | 'requests' | 'sent' | 'discover'
 
-type FriendWithUser = {
+type ConnectWithUser = {
   friendship: Friendship
   user: User
 }
 
-export default function FriendsPage() {
+export default function ConnectsPage() {
   const { user, isLoading: authLoading } = useAuth()
   const supabase = createClient()
 
-  const [activeTab, setActiveTab] = useState<FriendsTab>('friends')
+  const [activeTab, setActiveTab] = useState<ConnectsTab>('connects')
   const [searchQuery, setSearchQuery] = useState('')
-  const [friends, setFriends] = useState<FriendWithUser[]>([])
-  const [pendingReceived, setPendingReceived] = useState<FriendWithUser[]>([])
-  const [pendingSent, setPendingSent] = useState<FriendWithUser[]>([])
+  const [connects, setConnects] = useState<ConnectWithUser[]>([])
+  const [pendingReceived, setPendingReceived] = useState<ConnectWithUser[]>([])
+  const [pendingSent, setPendingSent] = useState<ConnectWithUser[]>([])
   const [suggestions, setSuggestions] = useState<User[]>([])
   const [searchResults, setSearchResults] = useState<User[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
 
-  const fetchFriends = useCallback(async () => {
+  const fetchConnects = useCallback(async () => {
     if (!user) return
 
     setIsLoading(true)
@@ -80,9 +80,9 @@ export default function FriendsPage() {
       }
 
       // Categorize friendships
-      const friendsList: FriendWithUser[] = []
-      const receivedList: FriendWithUser[] = []
-      const sentList: FriendWithUser[] = []
+      const connectsList: ConnectWithUser[] = []
+      const receivedList: ConnectWithUser[] = []
+      const sentList: ConnectWithUser[] = []
 
       friendships.forEach(f => {
         const otherUserId = f.requester_id === user.id ? f.addressee_id : f.requester_id
@@ -92,7 +92,7 @@ export default function FriendsPage() {
         const item = { friendship: f, user: otherUser }
 
         if (f.status === 'accepted') {
-          friendsList.push(item)
+          connectsList.push(item)
         } else if (f.status === 'pending') {
           if (f.addressee_id === user.id) {
             receivedList.push(item)
@@ -102,11 +102,11 @@ export default function FriendsPage() {
         }
       })
 
-      setFriends(friendsList)
+      setConnects(connectsList)
       setPendingReceived(receivedList)
       setPendingSent(sentList)
 
-      // Fetch friend suggestions (users in same communities who aren't friends)
+      // Fetch connect suggestions (users in same communities who aren't connects)
       const { data: memberships } = await supabase
         .from('community_memberships')
         .select('community_id')
@@ -127,7 +127,7 @@ export default function FriendsPage() {
         if (communityMembers) {
           const memberIds = Array.from(new Set((communityMembers as any[]).map(m => m.user_id)))
           
-          // Filter out existing friends and pending requests
+          // Filter out existing connects and pending requests
           const existingIds = new Set(friendships.map(f => 
             f.requester_id === user.id ? f.addressee_id : f.requester_id
           ))
@@ -145,15 +145,15 @@ export default function FriendsPage() {
         }
       }
     } catch (error) {
-      console.error('Error fetching friends:', error)
+      console.error('Error fetching connects:', error)
     } finally {
       setIsLoading(false)
     }
   }, [user, supabase])
 
   useEffect(() => {
-    fetchFriends()
-  }, [fetchFriends])
+    fetchConnects()
+  }, [fetchConnects])
 
   // Search users
   useEffect(() => {
@@ -191,8 +191,8 @@ export default function FriendsPage() {
 
       if (error) throw error
 
-      toast.success('Friend request accepted!')
-      fetchFriends()
+      toast.success('Connect request accepted!')
+      fetchConnects()
     } catch (error) {
       console.error('Error accepting request:', error)
       toast.error('Failed to accept request')
@@ -211,8 +211,8 @@ export default function FriendsPage() {
 
       if (error) throw error
 
-      toast.success('Friend request declined')
-      fetchFriends()
+      toast.success('Connect request declined')
+      fetchConnects()
     } catch (error) {
       console.error('Error rejecting request:', error)
       toast.error('Failed to decline request')
@@ -231,8 +231,8 @@ export default function FriendsPage() {
 
       if (error) throw error
 
-      toast.success('Friend request cancelled')
-      fetchFriends()
+      toast.success('Connect request cancelled')
+      fetchConnects()
     } catch (error) {
       console.error('Error cancelling request:', error)
       toast.error('Failed to cancel request')
@@ -241,7 +241,7 @@ export default function FriendsPage() {
     }
   }
 
-  const handleRemoveFriend = async (friendshipId: string) => {
+  const handleRemoveConnect = async (friendshipId: string) => {
     setActionLoading(friendshipId)
     try {
       const { error } = await supabase
@@ -251,11 +251,11 @@ export default function FriendsPage() {
 
       if (error) throw error
 
-      toast.success('Friend removed')
-      fetchFriends()
+      toast.success('Connect removed')
+      fetchConnects()
     } catch (error) {
-      console.error('Error removing friend:', error)
-      toast.error('Failed to remove friend')
+      console.error('Error removing connect:', error)
+      toast.error('Failed to remove connect')
     } finally {
       setActionLoading(null)
     }
@@ -274,8 +274,8 @@ export default function FriendsPage() {
 
       if (error) throw error
 
-      toast.success('Friend request sent!')
-      fetchFriends()
+      toast.success('Connect request sent!')
+      fetchConnects()
       setSearchResults(prev => prev.filter(u => u.id !== targetUserId))
       setSuggestions(prev => prev.filter(u => u.id !== targetUserId))
     } catch (error) {
@@ -286,8 +286,8 @@ export default function FriendsPage() {
     }
   }
 
-  const isAlreadyFriend = (userId: string) => {
-    return friends.some(f => f.user.id === userId)
+  const isAlreadyConnect = (userId: string) => {
+    return connects.some(f => f.user.id === userId)
   }
 
   const hasPendingRequest = (userId: string) => {
@@ -305,9 +305,8 @@ export default function FriendsPage() {
 
   return (
     <AppShell>
-      <Header />
 
-      <main className="min-h-screen pt-16 pb-24 bg-gradient-to-b from-primary-50/30 via-white to-white">
+      <main className="min-h-screen pt-16 pb-24 bg-dark-bg">
         <div className="max-w-2xl mx-auto px-4 py-6">
           {/* Header */}
           <div className="mb-6">
@@ -319,7 +318,7 @@ export default function FriendsPage() {
               Back to Profile
             </Link>
             <h1 className="text-2xl font-display font-bold text-neutral-100">
-              Friends
+              Connects
             </h1>
             <p className="text-neutral-400 mt-1">
               Manage your connections
@@ -332,7 +331,7 @@ export default function FriendsPage() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
               <input
                 type="text"
-                placeholder="Search for friends..."
+                placeholder="Search for connects..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 bg-dark-card rounded-xl border border-dark-border focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition-all"
@@ -367,7 +366,7 @@ export default function FriendsPage() {
                         )}
                       </div>
                     </Link>
-                    {!isAlreadyFriend(searchUser.id) && !hasPendingRequest(searchUser.id) && (
+                    {!isAlreadyConnect(searchUser.id) && !hasPendingRequest(searchUser.id) && (
                       <Button
                         size="sm"
                         onClick={() => handleSendRequest(searchUser.id)}
@@ -376,10 +375,10 @@ export default function FriendsPage() {
                         <UserPlus className="w-4 h-4" />
                       </Button>
                     )}
-                    {isAlreadyFriend(searchUser.id) && (
+                    {isAlreadyConnect(searchUser.id) && (
                       <span className="text-sm text-primary-400 flex items-center gap-1">
                         <UserCheck className="w-4 h-4" />
-                        Friends
+                        Connects
                       </span>
                     )}
                     {hasPendingRequest(searchUser.id) && (
@@ -395,14 +394,14 @@ export default function FriendsPage() {
           </div>
 
           {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as FriendsTab)}>
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ConnectsTab)}>
             <TabsList>
-              <TabsTrigger value="friends">
+              <TabsTrigger value="connects">
                 <Users className="w-4 h-4 mr-1.5" />
-                Friends
-                {friends.length > 0 && (
+                Connects
+                {connects.length > 0 && (
                   <span className="ml-1.5 text-xs bg-neutral-200 px-1.5 py-0.5 rounded-full">
-                    {friends.length}
+                    {connects.length}
                   </span>
                 )}
               </TabsTrigger>
@@ -427,25 +426,25 @@ export default function FriendsPage() {
               </TabsTrigger>
             </TabsList>
 
-            {/* Friends List */}
-            <TabsContent value="friends" className="mt-4">
+            {/* Connects List */}
+            <TabsContent value="connects" className="mt-4">
               {isLoading ? (
                 <div className="space-y-3">
                   {[...Array(5)].map((_, i) => (
                     <LoadingCard key={i} />
                   ))}
                 </div>
-              ) : friends.length === 0 ? (
+              ) : connects.length === 0 ? (
                 <EmptyState
                   icon={Users}
-                  title="No friends yet"
+                  title="No connects yet"
                   description="Start connecting with people from your communities!"
                   action={{ label: "Discover People", onClick: () => setActiveTab('discover') }}
                 />
               ) : (
                 <AnimatePresence mode="popLayout">
                   <div className="space-y-3">
-                    {friends.map(({ friendship, user: friendUser }, index) => (
+                    {connects.map(({ friendship, user: connectUser }, index) => (
                       <motion.div
                         key={friendship.id}
                         initial={{ opacity: 0, y: 10 }}
@@ -455,30 +454,30 @@ export default function FriendsPage() {
                       >
                         <Card className="p-4">
                           <div className="flex items-center gap-4">
-                            <Link href={`/profile/${friendUser.id}`}>
+                            <Link href={`/profile/${connectUser.id}`}>
                               <Avatar
-                                src={friendUser.avatar_url}
-                                name={friendUser.name || 'User'}
+                                src={connectUser.avatar_url}
+                                name={connectUser.name || 'User'}
                                 size="lg"
                               />
                             </Link>
                             <Link
-                              href={`/profile/${friendUser.id}`}
+                              href={`/profile/${connectUser.id}`}
                               className="flex-1"
                             >
                               <h3 className="font-semibold text-neutral-100 hover:text-primary-400 transition-colors">
-                                {friendUser.name}
+                                {connectUser.name}
                               </h3>
-                              {friendUser.bio && (
+                              {connectUser.bio && (
                                 <p className="text-sm text-neutral-500 line-clamp-1">
-                                  {friendUser.bio}
+                                  {connectUser.bio}
                                 </p>
                               )}
                             </Link>
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleRemoveFriend(friendship.id)}
+                              onClick={() => handleRemoveConnect(friendship.id)}
                               disabled={actionLoading === friendship.id}
                             >
                               <UserX className="w-4 h-4 text-neutral-400" />
@@ -504,7 +503,7 @@ export default function FriendsPage() {
                 <EmptyState
                   icon={UserPlus}
                   title="No pending requests"
-                  description="When someone sends you a friend request, it will appear here"
+                  description="When someone sends you a connect request, it will appear here"
                 />
               ) : (
                 <AnimatePresence mode="popLayout">
@@ -577,7 +576,7 @@ export default function FriendsPage() {
                 <EmptyState
                   icon={Clock}
                   title="No sent requests"
-                  description="Friend requests you send will appear here until they're accepted"
+                  description="Connect requests you send will appear here until they're accepted"
                 />
               ) : (
                 <AnimatePresence mode="popLayout">
@@ -701,7 +700,6 @@ export default function FriendsPage() {
         </div>
       </main>
 
-      <BottomNav />
     </AppShell>
   )
 }

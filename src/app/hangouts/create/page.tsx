@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
-import { AppShell, Header, BottomNav } from '@/components/layout'
+import { AppShell } from '@/components/layout'
 import { CreateHangout } from '@/components/hangouts/CreateHangout'
 import { Card } from '@/components/ui/Card'
 import { LoadingScreen } from '@/components/ui/Loading'
@@ -65,9 +65,8 @@ export default function CreateHangoutPage() {
 
   return (
     <AppShell>
-      <Header />
 
-      <main className="min-h-screen pt-16 pb-24 bg-gradient-to-b from-secondary-50/30 via-white to-white">
+      <main className="min-h-screen pt-16 pb-24 bg-dark-bg">
         <div className="max-w-2xl mx-auto px-4 py-6">
           {/* Back Button */}
           <button
@@ -106,7 +105,6 @@ export default function CreateHangoutPage() {
         </div>
       </main>
 
-      <BottomNav />
     </AppShell>
   )
 }

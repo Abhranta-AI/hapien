@@ -15,7 +15,7 @@ import {
   Shield,
   Search,
 } from 'lucide-react'
-import { AppShell, Header, BottomNav } from '@/components/layout'
+import { AppShell } from '@/components/layout'
 import { Avatar, Button, Card, Badge } from '@/components/ui'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs'
 import { LoadingScreen, LoadingCard } from '@/components/ui/Loading'
@@ -223,9 +223,8 @@ export default function CommunityAdminPage({ params }: CommunityAdminPageProps) 
 
   return (
     <AppShell>
-      <Header />
 
-      <main className="min-h-screen pt-16 pb-24 bg-gradient-to-b from-tertiary-50/30 via-white to-white">
+      <main className="min-h-screen pt-16 pb-24 bg-dark-bg">
         <div className="max-w-2xl mx-auto px-4 py-6">
           {/* Back Button */}
           <button
@@ -444,7 +443,6 @@ export default function CommunityAdminPage({ params }: CommunityAdminPageProps) 
         </div>
       </main>
 
-      <BottomNav />
     </AppShell>
   )
 }

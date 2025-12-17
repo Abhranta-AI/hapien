@@ -50,6 +50,9 @@ export default function OnboardingPage() {
   const [communitySearch, setCommunitySearch] = useState('')
   const [selectedCommunity, setSelectedCommunity] = useState<string | null>(null)
 
+  // Interests state
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([])
+
   // Community request modal state
   const [showRequestModal, setShowRequestModal] = useState(false)
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false)
@@ -152,7 +155,7 @@ export default function OnboardingPage() {
     console.log('name:', name)
     console.log('bio:', bio)
     console.log('selectedCommunity:', selectedCommunity)
-    
+
     // Check if user is authenticated
     if (!authUser?.id) {
       console.error('ERROR: No authenticated user!')
@@ -160,7 +163,7 @@ export default function OnboardingPage() {
       router.push('/auth')
       return
     }
-    
+
     // Validate name is filled
     if (!name.trim()) {
       console.error('ERROR: Name is empty!')
@@ -172,7 +175,57 @@ export default function OnboardingPage() {
     console.log('✓ Validation passed, starting onboarding...')
     setIsLoading(true)
 
+    // Helper function to add timeout to promises
+    const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> => {
+      return Promise.race([
+        promise,
+        new Promise<T>((_, reject) =>
+          setTimeout(() => reject(new Error('TIMEOUT')), ms)
+        )
+      ])
+    }
+
     try {
+      // Test Supabase connectivity first with direct fetch
+      console.log('→ Testing Supabase connectivity...')
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+      try {
+        console.log('→ Testing with direct fetch to:', supabaseUrl)
+        const fetchTest = await withTimeout(
+          fetch(`${supabaseUrl}/rest/v1/users?select=id&limit=1`, {
+            headers: {
+              'apikey': supabaseKey!,
+              'Authorization': `Bearer ${supabaseKey}`,
+            }
+          }),
+          5000
+        )
+        console.log('✓ Direct fetch response:', fetchTest.status, fetchTest.statusText)
+
+        if (!fetchTest.ok) {
+          const errorText = await fetchTest.text()
+          console.error('✗ Fetch error response:', errorText)
+        }
+      } catch (testErr) {
+        console.error('✗ Direct fetch failed:', testErr)
+
+        // Try a simple ping to check internet
+        try {
+          console.log('→ Testing general internet connectivity...')
+          const googleTest = await withTimeout(fetch('https://www.google.com/favicon.ico', { mode: 'no-cors' }), 3000)
+          console.log('✓ Internet is working (Google reachable)')
+          console.error('✗ Issue is specific to Supabase - check if blocked by firewall/VPN/browser extension')
+        } catch {
+          console.error('✗ Internet appears to be down or blocked')
+        }
+
+        toast.error('Cannot connect to database. Check firewall/VPN/browser extensions.')
+        setIsLoading(false)
+        return
+      }
+
       let finalAvatarUrl = avatarUrl
 
       // Upload avatar if selected (NON-BLOCKING)
@@ -181,14 +234,14 @@ export default function OnboardingPage() {
         try {
           const fileExt = avatarFile.name.split('.').pop()
           const fileName = `${authUser.id}.${fileExt}`
-          
-          const { error: uploadError } = await (supabase.storage
-            .from('avatars') as any)
-            .upload(fileName, avatarFile, { upsert: true })
+
+          const { error: uploadError } = await withTimeout(
+            (supabase.storage.from('avatars') as any).upload(fileName, avatarFile, { upsert: true }),
+            15000
+          )
 
           if (uploadError) {
             console.error('✗ Avatar upload failed:', uploadError)
-            toast.error('Avatar upload failed, continuing anyway...')
           } else {
             const { data: { publicUrl } } = (supabase.storage
               .from('avatars') as any)
@@ -196,96 +249,91 @@ export default function OnboardingPage() {
             finalAvatarUrl = publicUrl
             console.log('✓ Avatar uploaded successfully:', publicUrl)
           }
-        } catch (avatarError) {
+        } catch (avatarError: any) {
           console.error('✗ Avatar error:', avatarError)
           // Continue anyway
         }
       }
 
-      // Update user profile (CRITICAL) - Use UPSERT to handle missing records
-      console.log('→ Upserting profile with:', {
-        id: authUser.id,
-        email: authUser.email || null,
-        name: name.trim(),
-        bio: bio.trim() || null,
-        avatar_url: finalAvatarUrl,
-        interests: selectedInterests
-      })
+      // Update user profile using direct fetch (more reliable than Supabase client)
+      console.log('→ Upserting profile via direct fetch...')
+
+      // Get user's access token for authenticated requests
+      const { data: { session } } = await supabase.auth.getSession()
+      const accessToken = session?.access_token || supabaseKey
 
       try {
-        // Add timeout to prevent infinite hanging
-        const updatePromise = (supabase
-          .from('users') as any)
-          .upsert({
-            id: authUser.id,
-            email: authUser.email || null,
-            name: name.trim(),
-            bio: bio.trim() || null,
-            avatar_url: finalAvatarUrl,
-            interests: selectedInterests.length > 0 ? selectedInterests : null,
-            updated_at: new Date().toISOString(),
-          }, {
-            onConflict: 'id'
-          })
-          .select()
+        const profileData = {
+          id: authUser.id,
+          email: authUser.email || null,
+          name: name.trim(),
+          bio: bio.trim() || null,
+          avatar_url: finalAvatarUrl,
+          interests: selectedInterests.length > 0 ? selectedInterests : null,
+          updated_at: new Date().toISOString(),
+        }
 
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Database operation timed out after 10 seconds')), 10000)
+        const response = await withTimeout(
+          fetch(`${supabaseUrl}/rest/v1/users`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': supabaseKey!,
+              'Authorization': `Bearer ${accessToken}`,
+              'Prefer': 'resolution=merge-duplicates,return=representation',
+            },
+            body: JSON.stringify(profileData),
+          }),
+          15000
         )
 
-        const result = await Promise.race([
-          updatePromise,
-          timeoutPromise
-        ])
-
-        const { error: updateError, data: updateData } = result as any
-
-        if (updateError) {
-          console.error('✗ Profile upsert error:', updateError)
-          console.error('Error details:', JSON.stringify(updateError, null, 2))
-          throw new Error(`Failed to update profile: ${updateError.message}`)
+        if (!response.ok) {
+          const errorText = await response.text()
+          console.error('✗ Profile upsert failed:', response.status, errorText)
+          throw new Error(`Failed to update profile: ${errorText}`)
         }
 
+        const updateData = await response.json()
         console.log('✓ Profile upserted successfully:', updateData)
-      } catch (timeoutError: any) {
-        console.error('✗ Database timeout or error:', timeoutError)
-        
-        if (timeoutError.message?.includes('timed out')) {
-          toast.error('Database operation timed out. Please check your connection and try again.')
+      } catch (dbError: any) {
+        if (dbError.message === 'TIMEOUT') {
+          console.error('✗ Database timeout')
+          toast.error('Database is not responding. Please try again.')
+          setIsLoading(false)
+          return
         }
-        
-        throw timeoutError
+        throw dbError
       }
 
       // Join community if selected (OPTIONAL/NON-BLOCKING)
       if (selectedCommunity) {
         console.log('→ Attempting to join community:', selectedCommunity)
         try {
-          const { error: membershipError, data: membershipData } = await (supabase
-            .from('community_memberships') as any)
-            .insert({
-              user_id: authUser.id,
-              community_id: selectedCommunity,
-              status: 'pending',
-            })
-            .select()
-
-          if (membershipError) {
-            console.error('✗ Community membership error:', membershipError)
-            toast.error('Could not join community, but continuing...')
-          } else {
-            console.log('✓ Community joined successfully:', membershipData)
-          }
+          await withTimeout(
+            (supabase.from('community_memberships') as any)
+              .insert({
+                user_id: authUser.id,
+                community_id: selectedCommunity,
+                status: 'pending',
+              })
+              .select(),
+            10000
+          )
+          console.log('✓ Community joined successfully')
         } catch (communityError) {
           console.error('✗ Community error:', communityError)
           // Continue anyway
         }
       }
 
-      // Refresh profile
+      // Refresh profile (with timeout, non-blocking)
       console.log('→ Refreshing profile...')
-      await refreshProfile()
-      console.log('✓ Profile refreshed')
+      try {
+        await withTimeout(refreshProfile(), 5000)
+        console.log('✓ Profile refreshed')
+      } catch {
+        console.log('→ Profile refresh skipped (timeout)')
+      }
 
       console.log('✓✓✓ Onboarding complete! Redirecting to feed...')
       toast.success('Welcome to Hapien!')

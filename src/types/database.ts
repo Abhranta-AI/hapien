@@ -384,3 +384,138 @@ export type HangoutCategory = Hangout['category']
 export type CommunityType = Community['type']
 export type PostVisibility = Post['visibility']
 export type HangoutVisibility = Hangout['visibility']
+
+// Wall-specific types (UI uses different visibility values than DB)
+export type WallPostVisibility = 'connections' | 'close_friends' | 'community'
+
+// Comment with user relation
+export type CommentWithUser = Comment & {
+  user: User
+}
+
+// Wall post with all relations for display
+export type WallPostWithRelations = {
+  id: string
+  user_id: string
+  content: string | null
+  media_urls: string[] | null
+  visibility: WallPostVisibility
+  community_id: string | null
+  created_at: string
+  updated_at: string
+  user: User
+  reactions: Reaction[]
+  comments: CommentWithUser[]
+  reactions_count: number
+  comments_count: number
+  user_reaction: Reaction | null
+}
+
+// ============================================
+// GAMIFICATION TYPES (Octalysis Framework)
+// ============================================
+
+// User stats for XP and progress tracking
+export interface UserStats {
+  id: string
+  user_id: string
+  total_xp: number
+  current_level: number
+  hangouts_created: number
+  hangouts_joined: number
+  hangouts_completed: number
+  unique_people_met: number
+  close_friends_count: number
+  current_daily_streak: number
+  longest_daily_streak: number
+  last_activity_date: string | null
+  created_at: string
+  updated_at: string
+}
+
+// Achievement progress
+export type AchievementTier = 'bronze' | 'silver' | 'gold' | 'platinum' | 'locked'
+
+export interface UserAchievement {
+  id: string
+  user_id: string
+  achievement_key: string
+  tier: number // 1=Bronze, 2=Silver, 3=Gold, 4=Platinum
+  progress: number
+  unlocked_at: string | null
+  created_at: string
+}
+
+// XP transaction history
+export interface XPTransaction {
+  id: string
+  user_id: string
+  amount: number
+  reason: string
+  hangout_id: string | null
+  created_at: string
+}
+
+// Streak tracking
+export type StreakType = 'daily' | 'weekly' | 'partner'
+
+export interface StreakData {
+  id: string
+  user_id: string
+  streak_type: StreakType
+  partner_user_id: string | null // For partner streaks
+  current_count: number
+  longest_count: number
+  last_activity_date: string | null
+  streak_started_at: string | null
+  created_at: string
+}
+
+// Leaderboard snapshots
+export type LeaderboardPeriod = 'weekly' | 'monthly' | 'all_time'
+
+export interface LeaderboardEntry {
+  user_id: string
+  xp: number
+  rank: number
+  change?: number // Position change from last period
+}
+
+export interface LeaderboardSnapshot {
+  id: string
+  community_id: string
+  period_type: LeaderboardPeriod
+  period_start: string
+  rankings: LeaderboardEntry[]
+  created_at: string
+}
+
+// Extended user type with gamification data
+export interface UserWithGamification extends User {
+  stats?: UserStats
+  achievements?: UserAchievement[]
+  streaks?: StreakData[]
+}
+
+// Hangout completion event for XP calculation
+export interface HangoutCompletionEvent {
+  hangout_id: string
+  user_id: string
+  partner_ids: string[]
+  hangout_category: HangoutCategory
+  hangout_time: string
+  is_host: boolean
+  completed_at: string
+}
+
+// Mystery drop event
+export interface MysteryDropEvent {
+  id: string
+  user_id: string
+  event_type: 'XP_MULTIPLIER' | 'BONUS_DROP' | 'MYSTERY_BADGE'
+  multiplier?: number
+  bonus_xp?: number
+  message: string
+  claimed: boolean
+  created_at: string
+}

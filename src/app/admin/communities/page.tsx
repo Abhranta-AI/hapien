@@ -15,7 +15,7 @@ import {
   Loader2,
   AlertCircle,
 } from 'lucide-react'
-import { AppShell, Header, BottomNav } from '@/components/layout'
+import { AppShell } from '@/components/layout'
 import { Button, Card, Badge } from '@/components/ui'
 import { LoadingScreen } from '@/components/ui/Loading'
 import { createClient } from '@/lib/supabase/client'
@@ -215,7 +215,6 @@ export default function AdminCommunitiesPage() {
 
   return (
     <AppShell>
-      <Header />
 
       <main className="min-h-screen pt-16 pb-24 bg-dark-bg">
         <div className="max-w-4xl mx-auto px-4 py-6">
@@ -377,7 +376,6 @@ export default function AdminCommunitiesPage() {
         </div>
       </main>
 
-      <BottomNav />
     </AppShell>
   )
 }

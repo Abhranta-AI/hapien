@@ -17,12 +17,15 @@ import {
   Shield,
   FileText,
   MessageCircle,
+  Heart,
 } from 'lucide-react'
-import { AppShell, Header, BottomNav } from '@/components/layout'
+import { AppShell } from '@/components/layout'
 import { Card, Button, Modal } from '@/components/ui'
 import { LoadingScreen } from '@/components/ui/Loading'
+import { DatingPreferences } from '@/components/settings'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/utils/helpers'
+import { DatingPreferences as DatingPreferencesType } from '@/types/database'
 import toast from 'react-hot-toast'
 
 type SettingsSection = {
@@ -143,9 +146,7 @@ export default function SettingsPage() {
 
   return (
     <AppShell>
-      <Header />
-
-      <main className="min-h-screen pt-16 pb-24 bg-gradient-to-b from-neutral-50 via-white to-white">
+      <main className="min-h-screen pt-16 pb-24 bg-dark-bg">
         <div className="max-w-2xl mx-auto px-4 py-6">
           {/* Back button */}
           <Link
@@ -282,8 +283,6 @@ export default function SettingsPage() {
           </Button>
         </div>
       </Modal>
-
-      <BottomNav />
     </AppShell>
   )
 }

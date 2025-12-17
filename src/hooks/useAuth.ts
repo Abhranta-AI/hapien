@@ -3,6 +3,33 @@
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
+// Helper to fetch profile via direct REST API (more reliable)
+async function fetchProfileDirect(userId: string): Promise<any> {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseKey) return null
+
+  try {
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/users?id=eq.${userId}&select=*`,
+      {
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+        },
+      }
+    )
+
+    if (!response.ok) return null
+
+    const data = await response.json()
+    return data?.[0] ?? null
+  } catch {
+    return null
+  }
+}
+
 export function useAuth() {
   const [authUser, setAuthUser] = useState<any>(null)
   const [user, setUser] = useState<any>(null)
@@ -15,25 +42,15 @@ export function useAuth() {
       setIsLoading(false)
     }, 5000)
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setAuthUser(session?.user ?? null)
 
       if (session?.user) {
-        // Fetch user profile
-        supabase
-          .from('users')
-          .select('*')
-          .eq('id', session.user.id)
-          .maybeSingle()
-          .then(({ data }) => {
-            setUser(data)
-            clearTimeout(timeoutId)
-            setIsLoading(false)
-          })
-          .catch(() => {
-            clearTimeout(timeoutId)
-            setIsLoading(false)
-          })
+        // Fetch user profile via direct fetch (more reliable)
+        const profileData = await fetchProfileDirect(session.user.id)
+        setUser(profileData)
+        clearTimeout(timeoutId)
+        setIsLoading(false)
       } else {
         clearTimeout(timeoutId)
         setIsLoading(false)
@@ -49,13 +66,9 @@ export function useAuth() {
         setAuthUser(session?.user ?? null)
 
         if (session?.user) {
-          // Fetch updated profile on auth change
-          const { data } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', session.user.id)
-            .maybeSingle()
-          setUser(data)
+          // Fetch updated profile on auth change via direct fetch
+          const profileData = await fetchProfileDirect(session.user.id)
+          setUser(profileData)
         } else {
           setUser(null)
         }
@@ -72,14 +85,9 @@ export function useAuth() {
   const refreshProfile = useCallback(async () => {
     if (!authUser?.id) return
 
-    const { data } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', authUser.id)
-      .maybeSingle()
-
-    setUser(data)
-  }, [authUser?.id, supabase])
+    const profileData = await fetchProfileDirect(authUser.id)
+    setUser(profileData)
+  }, [authUser?.id])
 
   // Function to sign out
   const signOut = useCallback(async () => {
