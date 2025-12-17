@@ -99,14 +99,36 @@ export default function CommunitiesPage() {
     setJoiningId(communityId)
 
     try {
-      await (supabase.from('community_memberships') as any).insert({
-        user_id: user.id,
-        community_id: communityId,
-        status: 'approved',
-        role: 'member',
-      })
+      // First check if user already has a membership (pending or approved)
+      const { data: existing } = await supabase
+        .from('community_memberships')
+        .select('id, status')
+        .eq('user_id', user.id)
+        .eq('community_id', communityId)
+        .single()
 
-      toast.success('You joined the community!')
+      if (existing) {
+        // If membership exists but is pending, update it to approved
+        if (existing.status === 'pending') {
+          await supabase
+            .from('community_memberships')
+            .update({ status: 'approved' })
+            .eq('id', existing.id)
+          toast.success('You joined the community!')
+        } else if (existing.status === 'approved') {
+          toast.info('You are already a member!')
+        }
+      } else {
+        // Create new membership with approved status
+        await (supabase.from('community_memberships') as any).insert({
+          user_id: user.id,
+          community_id: communityId,
+          status: 'approved',
+          role: 'member',
+        })
+        toast.success('You joined the community!')
+      }
+
       fetchCommunities()
     } catch (error) {
       console.error('Error joining community:', error)
