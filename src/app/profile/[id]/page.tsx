@@ -452,7 +452,7 @@ export default function UserProfilePage() {
               </div>
             )}
 
-            {/* Friend Action Buttons */}
+            {/* Connect Action Buttons */}
             <div className="flex gap-3">
               {friendshipStatus === 'none' && (
                 <Button
@@ -461,7 +461,7 @@ export default function UserProfilePage() {
                   disabled={actionLoading}
                 >
                   <UserPlus className="w-4 h-4 mr-2" />
-                  {actionLoading ? 'Sending...' : 'Add Friend'}
+                  {actionLoading ? 'Sending...' : 'Connect'}
                 </Button>
               )}
 
