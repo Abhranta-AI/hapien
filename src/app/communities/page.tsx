@@ -334,13 +334,13 @@ export default function CommunitiesPage() {
                               </Button>
                             ) : membership?.status === 'pending' ? (
                               <Button
-                                variant="ghost"
                                 size="sm"
                                 className="w-full"
-                                disabled
+                                onClick={() => handleJoinCommunity(community.id)}
+                                disabled={joiningId === community.id}
                               >
-                                <Clock className="w-4 h-4 mr-2" />
-                                Request Pending
+                                <Check className="w-4 h-4 mr-2" />
+                                {joiningId === community.id ? 'Approving...' : 'Approve & Join'}
                               </Button>
                             ) : (
                               <Button
