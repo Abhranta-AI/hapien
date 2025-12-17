@@ -284,13 +284,13 @@ export default function CommunityDetailPage() {
                   <TypeIcon className="w-3 h-3 mr-1" />
                   {typeConfig.label}
                 </Badge>
-                <h1 className="text-2xl font-display font-bold text-neutral-100">
+                <h1 className="text-3xl font-display font-bold text-white">
                   {community.name}
                 </h1>
                 {community.description && (
                   <p className="text-neutral-400 mt-2">{community.description}</p>
                 )}
-                <div className="flex items-center gap-4 mt-3 text-sm text-neutral-500">
+                <div className="flex items-center gap-4 mt-3 text-sm text-neutral-400">
                   {community.location && (
                     <span className="flex items-center gap-1">
                       <MapPin className="w-4 h-4" />
