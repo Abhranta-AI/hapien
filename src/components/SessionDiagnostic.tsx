@@ -166,9 +166,9 @@ Time: ${new Date().toISOString()}
       <div className="fixed bottom-24 right-4 z-50">
         <Button
           onClick={() => setIsOpen(true)}
-          size="sm"
-          variant="secondary"
-          className="shadow-lg"
+          size="lg"
+          variant="primary"
+          className="shadow-2xl bg-violet-600 hover:bg-violet-700 text-white font-semibold px-6 py-3"
         >
           🔍 Debug Session
         </Button>

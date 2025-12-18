@@ -127,7 +127,11 @@ export default function DebugSessionPage() {
               This page helps diagnose why sessions aren't persisting on iOS PWA.
             </p>
 
-            <Button onClick={checkSession} className="mb-6" size="lg">
+            <Button
+              onClick={checkSession}
+              className="mb-6 bg-violet-600 hover:bg-violet-700 text-white font-semibold"
+              size="lg"
+            >
               🔄 Refresh Diagnostic
             </Button>
 
