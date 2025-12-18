@@ -11,6 +11,14 @@ function AuthCallbackContent() {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [status, setStatus] = useState('Verifying your login...')
+  const [showPWAInstructions, setShowPWAInstructions] = useState(false)
+
+  // Check if running in PWA mode
+  const isPWA = typeof window !== 'undefined' && (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (window.navigator as any).standalone === true ||
+    document.referrer.includes('android-app://')
+  )
 
   useEffect(() => {
     const supabase = createClient()
@@ -24,6 +32,7 @@ function AuthCallbackContent() {
 
       setStatus('Setting up your account...')
       console.log('✓ Session found, user:', session.user.id)
+      console.log('Running in PWA mode:', isPWA)
 
       try {
         // Check if user profile exists
@@ -35,6 +44,13 @@ function AuthCallbackContent() {
 
         if (profileError && profileError.code !== 'PGRST116') {
           console.error('Profile check error:', profileError)
+        }
+
+        // If opened in browser (not PWA), show instructions to return to app
+        if (!isPWA) {
+          console.log('→ Opened in browser, showing PWA instructions')
+          setShowPWAInstructions(true)
+          return
         }
 
         if (!profile) {
@@ -147,6 +163,47 @@ function AuthCallbackContent() {
       isActive = false
     }
   }, [router])
+
+  // Show PWA instructions if opened in browser
+  if (showPWAInstructions) {
+    return (
+      <div className="min-h-screen bg-stone-900 flex items-center justify-center p-4">
+        <Card className="max-w-md w-full p-8 text-center">
+          <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-stone-50 mb-4">
+            ✅ Login Successful!
+          </h2>
+          <p className="text-stone-400 mb-6 text-left">
+            You're now logged in! However, you clicked the magic link in your email, which opened in Safari browser.
+          </p>
+          <div className="bg-primary-900/20 border border-primary-500/30 rounded-lg p-4 mb-6 text-left">
+            <p className="text-sm font-semibold text-primary-300 mb-2">
+              📱 To continue in the Hapien app:
+            </p>
+            <ol className="text-sm text-stone-300 space-y-2 list-decimal list-inside">
+              <li>Go back to your home screen</li>
+              <li>Tap the Hapien app icon</li>
+              <li>Your login will be ready!</li>
+            </ol>
+          </div>
+          <div className="text-xs text-stone-500 mb-4">
+            Your session has been saved. You can close this Safari tab now.
+          </div>
+          <Button
+            onClick={() => window.close()}
+            variant="secondary"
+            className="w-full"
+          >
+            Close This Tab
+          </Button>
+        </Card>
+      </div>
+    )
+  }
 
   if (error) {
     return (
