@@ -17,10 +17,19 @@ export async function middleware(request: NextRequest) {
           return request.cookies.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
+          // Enhanced cookie options for PWA/mobile persistence
+          const cookieOptions = {
+            ...options,
+            sameSite: 'lax' as const,
+            secure: true,
+            path: '/',
+            maxAge: 365 * 24 * 60 * 60, // 1 year
+          }
+
           request.cookies.set({
             name,
             value,
-            ...options,
+            ...cookieOptions,
           })
           response = NextResponse.next({
             request: {
@@ -30,14 +39,22 @@ export async function middleware(request: NextRequest) {
           response.cookies.set({
             name,
             value,
-            ...options,
+            ...cookieOptions,
           })
         },
         remove(name: string, options: CookieOptions) {
+          const cookieOptions = {
+            ...options,
+            sameSite: 'lax' as const,
+            secure: true,
+            path: '/',
+            maxAge: 0,
+          }
+
           request.cookies.set({
             name,
             value: '',
-            ...options,
+            ...cookieOptions,
           })
           response = NextResponse.next({
             request: {
@@ -47,7 +64,7 @@ export async function middleware(request: NextRequest) {
           response.cookies.set({
             name,
             value: '',
-            ...options,
+            ...cookieOptions,
           })
         },
       },

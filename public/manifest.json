@@ -3,7 +3,9 @@
   "short_name": "Hapien",
   "description": "A private, hyperlocal social network that nurtures connections through shared experiences.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#282828",
   "theme_color": "#5d146f",
   "icons": [

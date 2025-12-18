@@ -48,6 +48,53 @@ export function createClient() {
   }
 
   console.log('[Supabase] Creating client with valid credentials')
-  supabaseClient = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey)
+  supabaseClient = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+      storageKey: 'hapien-auth',
+      flowType: 'pkce',
+    },
+    cookies: {
+      get(name) {
+        const value = typeof document !== 'undefined'
+          ? document.cookie
+              .split('; ')
+              .find(row => row.startsWith(`${name}=`))
+              ?.split('=')[1]
+          : undefined
+        return value
+      },
+      set(name, value, options) {
+        if (typeof document === 'undefined') return
+
+        const cookieOptions = {
+          ...options,
+          sameSite: 'lax' as const,
+          path: '/',
+          secure: window.location.protocol === 'https:',
+          maxAge: 365 * 24 * 60 * 60, // 1 year
+        }
+
+        const cookieString = `${name}=${value}; path=${cookieOptions.path}; max-age=${cookieOptions.maxAge}; samesite=${cookieOptions.sameSite}${cookieOptions.secure ? '; secure' : ''}`
+        document.cookie = cookieString
+      },
+      remove(name, options) {
+        if (typeof document === 'undefined') return
+
+        const cookieOptions = {
+          ...options,
+          sameSite: 'lax' as const,
+          path: '/',
+          maxAge: -1,
+        }
+
+        document.cookie = `${name}=; path=${cookieOptions.path}; max-age=${cookieOptions.maxAge}; samesite=${cookieOptions.sameSite}`
+      },
+    },
+  })
+
   return supabaseClient
 }
