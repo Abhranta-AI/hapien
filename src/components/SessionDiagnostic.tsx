@@ -10,6 +10,7 @@ export function SessionDiagnostic() {
   const [isOpen, setIsOpen] = useState(false)
   const [diagnostics, setDiagnostics] = useState<any>(null)
   const [isChecking, setIsChecking] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   const runDiagnostics = async () => {
     setIsChecking(true)
@@ -66,6 +67,66 @@ export function SessionDiagnostic() {
     setIsChecking(false)
   }
 
+  const copyToClipboard = async () => {
+    if (!diagnostics) return
+
+    const text = `
+🔍 HAPIEN SESSION DIAGNOSTIC REPORT
+Generated: ${diagnostics.timestamp}
+
+📊 SUMMARY:
+${diagnostics.checks.supabase?.hasSession ? '✅' : '❌'} Supabase Session
+${diagnostics.checks.indexedDB?.hasBackup ? '✅' : '❌'} IndexedDB Backup
+${diagnostics.checks.localStorage?.keyCount > 0 ? '✅' : '❌'} LocalStorage (${diagnostics.checks.localStorage?.keyCount || 0} keys)
+${diagnostics.checks.cookies?.count > 0 ? '✅' : '❌'} Cookies (${diagnostics.checks.cookies?.count || 0})
+
+📧 SUPABASE SESSION:
+Email: ${diagnostics.checks.supabase?.email || 'N/A'}
+Expires At: ${diagnostics.checks.supabase?.expiresAt || 'N/A'}
+${diagnostics.checks.supabase?.error ? `Error: ${diagnostics.checks.supabase.error}` : ''}
+
+💾 INDEXEDDB BACKUP:
+Has Backup: ${diagnostics.checks.indexedDB?.hasBackup ? 'Yes' : 'No'}
+User ID: ${diagnostics.checks.indexedDB?.userId || 'N/A'}
+Saved At: ${diagnostics.checks.indexedDB?.savedAt || 'N/A'}
+Expires At: ${diagnostics.checks.indexedDB?.expiresAt || 'N/A'}
+${diagnostics.checks.indexedDB?.error ? `Error: ${diagnostics.checks.indexedDB.error}` : ''}
+
+💽 LOCALSTORAGE:
+Keys Found: ${diagnostics.checks.localStorage?.keys?.join(', ') || 'None'}
+
+🍪 COOKIES:
+Names: ${diagnostics.checks.cookies?.names?.join(', ') || 'None'}
+
+---
+Device: ${navigator.userAgent}
+Time: ${new Date().toISOString()}
+    `.trim()
+
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+      // Fallback: try to use the old method
+      const textArea = document.createElement('textarea')
+      textArea.value = text
+      textArea.style.position = 'fixed'
+      textArea.style.opacity = '0'
+      document.body.appendChild(textArea)
+      textArea.select()
+      try {
+        document.execCommand('copy')
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      } catch (e) {
+        console.error('Fallback copy failed:', e)
+      }
+      document.body.removeChild(textArea)
+    }
+  }
+
   useEffect(() => {
     if (isOpen && !diagnostics) {
       runDiagnostics()
@@ -100,14 +161,25 @@ export function SessionDiagnostic() {
           </button>
         </div>
 
-        <Button
-          onClick={runDiagnostics}
-          size="sm"
-          className="w-full mb-3"
-          disabled={isChecking}
-        >
-          {isChecking ? '⏳ Checking...' : '🔄 Refresh'}
-        </Button>
+        <div className="flex gap-2 mb-3">
+          <Button
+            onClick={runDiagnostics}
+            size="sm"
+            className="flex-1"
+            disabled={isChecking}
+          >
+            {isChecking ? '⏳ Checking...' : '🔄 Refresh'}
+          </Button>
+          <Button
+            onClick={copyToClipboard}
+            size="sm"
+            variant="secondary"
+            className="flex-1"
+            disabled={!diagnostics}
+          >
+            {copied ? '✅ Copied!' : '📋 Copy'}
+          </Button>
+        </div>
 
         {diagnostics && (
           <div className="space-y-2 text-xs">
@@ -164,6 +236,10 @@ export function SessionDiagnostic() {
                 <div className="text-stone-300 text-xs">{diagnostics.checks.indexedDB.savedAt}</div>
               </div>
             )}
+
+            <div className="mt-3 pt-3 border-t border-stone-700 text-stone-500 text-xs">
+              💡 Tap "Copy" to copy diagnostic info, then paste it anywhere to share
+            </div>
           </div>
         )}
       </Card>
