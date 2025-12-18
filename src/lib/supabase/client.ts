@@ -215,6 +215,67 @@ export function createClient() {
     })
   }
 
+  // Setup proactive token refresh for iOS PWA
+  // iOS suspends PWA in background, so tokens may expire while app is suspended
+  if (typeof window !== 'undefined') {
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
+                  (window.navigator as any).standalone === true ||
+                  document.referrer.includes('android-app://')
+
+    if (isPWA) {
+      console.log('[Supabase] 📱 iOS PWA detected, enabling aggressive token refresh')
+
+      // Refresh token when app becomes visible again
+      document.addEventListener('visibilitychange', async () => {
+        if (document.visibilityState === 'visible') {
+          console.log('[Supabase] App became visible, checking session')
+
+          try {
+            const { data: { session } } = await supabaseClient!.auth.getSession()
+
+            if (session) {
+              const expiresAt = session.expires_at || 0
+              const now = Date.now() / 1000
+              const timeUntilExpiry = expiresAt - now
+
+              // Refresh if expiring within 5 minutes
+              if (timeUntilExpiry < 300) {
+                console.log('[Supabase] ⏰ Token expiring soon, refreshing proactively')
+                await supabaseClient!.auth.refreshSession()
+              } else {
+                console.log('[Supabase] ✅ Token valid for', Math.round(timeUntilExpiry / 60), 'minutes')
+              }
+            }
+          } catch (error) {
+            console.error('[Supabase] Error checking session on visibility change:', error)
+          }
+        }
+      })
+
+      // Also refresh on window focus (iOS PWA edge case)
+      window.addEventListener('focus', async () => {
+        console.log('[Supabase] Window focused, checking session')
+
+        try {
+          const { data: { session } } = await supabaseClient!.auth.getSession()
+
+          if (session) {
+            const expiresAt = session.expires_at || 0
+            const now = Date.now() / 1000
+            const timeUntilExpiry = expiresAt - now
+
+            if (timeUntilExpiry < 300) {
+              console.log('[Supabase] ⏰ Token expiring soon (focus), refreshing proactively')
+              await supabaseClient!.auth.refreshSession()
+            }
+          }
+        } catch (error) {
+          console.error('[Supabase] Error on focus refresh:', error)
+        }
+      })
+    }
+  }
+
   return supabaseClient
 }
 
