@@ -72,11 +72,10 @@ export default function LandingPage() {
                 transition={{ duration: 0.7, delay: 0.1 }}
                 className="font-display text-5xl sm:text-6xl lg:text-7xl font-bold text-stone-50 leading-[1.1] mb-8"
               >
-                Where real connections{' '}
+                Get company for social activities in{' '}
                 <span className="bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 bg-clip-text text-transparent animate-gradient">
-                  flourish
-                </span>{' '}
-                through shared moments
+                  10 minutes
+                </span>
               </motion.h1>
 
               <motion.p
