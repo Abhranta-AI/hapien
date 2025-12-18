@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { createClient, ensureSession } from '@/lib/supabase/client'
 
 // Helper to fetch profile via direct REST API (more reliable)
 async function fetchProfileDirect(userId: string): Promise<any> {
@@ -37,38 +37,64 @@ export function useAuth() {
   const supabase = createClient()
 
   useEffect(() => {
-    // Safety timeout - force loading to false after 5 seconds
+    let isActive = true
+
+    // Safety timeout - force loading to false after 10 seconds
     const timeoutId = setTimeout(() => {
-      setIsLoading(false)
-    }, 5000)
-
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setAuthUser(session?.user ?? null)
-
-      if (session?.user) {
-        // Fetch user profile via direct fetch (more reliable)
-        const profileData = await fetchProfileDirect(session.user.id)
-        setUser(profileData)
-        clearTimeout(timeoutId)
-        setIsLoading(false)
-      } else {
-        clearTimeout(timeoutId)
+      if (isActive) {
+        console.warn('[useAuth] Timeout reached, forcing loading to false')
         setIsLoading(false)
       }
-    }).catch(() => {
-      clearTimeout(timeoutId)
-      setIsLoading(false)
-    })
+    }, 10000)
+
+    // Wait for restoration before checking session
+    const initAuth = async () => {
+      try {
+        // This will wait for restoration to complete
+        const { session, restorationAttempted, restorationSuccess } = await ensureSession()
+
+        console.log('[useAuth] Restoration complete', {
+          attempted: restorationAttempted,
+          success: restorationSuccess,
+          hasSession: !!session
+        })
+
+        if (!isActive) return
+
+        setAuthUser(session?.user ?? null)
+
+        if (session?.user) {
+          // Fetch user profile via direct fetch (more reliable)
+          const profileData = await fetchProfileDirect(session.user.id)
+          if (isActive) {
+            setUser(profileData)
+          }
+        }
+      } catch (error) {
+        console.error('[useAuth] Error during init:', error)
+      } finally {
+        if (isActive) {
+          clearTimeout(timeoutId)
+          setIsLoading(false)
+        }
+      }
+    }
+
+    initAuth()
 
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!isActive) return
+
         setAuthUser(session?.user ?? null)
 
         if (session?.user) {
           // Fetch updated profile on auth change via direct fetch
           const profileData = await fetchProfileDirect(session.user.id)
-          setUser(profileData)
+          if (isActive) {
+            setUser(profileData)
+          }
         } else {
           setUser(null)
         }
@@ -76,6 +102,7 @@ export function useAuth() {
     )
 
     return () => {
+      isActive = false
       subscription.unsubscribe()
       clearTimeout(timeoutId)
     }

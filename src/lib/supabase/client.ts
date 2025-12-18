@@ -7,6 +7,11 @@ let supabaseClient: ReturnType<typeof createBrowserClient<Database>> | null = nu
 let isRestoringSession = false
 let restorationPromise: Promise<void> | null = null
 
+// Global restoration state tracking
+let restorationComplete = false
+let restorationSuccess = false
+const restorationListeners: Array<(success: boolean) => void> = []
+
 export function createClient() {
   // Only create client in browser environment
   if (typeof window === 'undefined') {
@@ -154,23 +159,37 @@ export function createClient() {
 
             if (error) throw error
 
-            console.log('[Supabase] Session restored successfully')
+            console.log('[Supabase] ✅ Session restored successfully')
             console.log('[Supabase] User:', data.user?.email)
+            restorationSuccess = true
           } catch (error) {
-            console.error('[Supabase] Failed to restore session:', error)
+            console.error('[Supabase] ❌ Failed to restore session:', error)
             // Clear invalid session
             await sessionStorage.clearSession()
+            restorationSuccess = false
           }
         } else {
           console.log('[Supabase] No backup session found in IndexedDB')
+          restorationSuccess = false
         }
       } else {
-        console.log('[Supabase] Active session found:', session.user?.email)
+        console.log('[Supabase] ✅ Active session found:', session.user?.email)
+        restorationSuccess = true
       }
+
+      // Mark restoration as complete and notify all listeners
+      restorationComplete = true
       isRestoringSession = false
+      console.log('[Supabase] Restoration complete. Success:', restorationSuccess)
+      restorationListeners.forEach(callback => callback(restorationSuccess))
+      restorationListeners.length = 0 // Clear listeners after notifying
     }).catch((error) => {
-      console.error('[Supabase] Error during session restoration:', error)
+      console.error('[Supabase] ❌ Error during session restoration:', error)
+      restorationComplete = true
+      restorationSuccess = false
       isRestoringSession = false
+      restorationListeners.forEach(callback => callback(false))
+      restorationListeners.length = 0
     })
   }
 
@@ -178,11 +197,33 @@ export function createClient() {
 }
 
 // Helper function to ensure session is ready
-export async function ensureSession() {
-  if (restorationPromise) {
+export async function ensureSession(): Promise<{
+  session: any | null
+  restorationAttempted: boolean
+  restorationSuccess: boolean
+}> {
+  // Wait for restoration if in progress
+  if (restorationPromise && !restorationComplete) {
     await restorationPromise
   }
+
   const client = createClient()
   const { data: { session } } = await client.auth.getSession()
-  return session
+
+  return {
+    session,
+    restorationAttempted: restorationComplete,
+    restorationSuccess
+  }
+}
+
+// Register listener for restoration completion
+export function onRestorationComplete(callback: (success: boolean) => void): void {
+  if (restorationComplete) {
+    // If restoration already complete, call immediately
+    callback(restorationSuccess)
+  } else {
+    // Otherwise, queue for later
+    restorationListeners.push(callback)
+  }
 }

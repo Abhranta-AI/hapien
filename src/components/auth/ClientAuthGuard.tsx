@@ -23,22 +23,37 @@ export function ClientAuthGuard({
   const router = useRouter()
   const { authUser, user, isLoading } = useAuth()
   const [isChecking, setIsChecking] = useState(true)
+  const [restorationDone, setRestorationDone] = useState(false)
 
   useEffect(() => {
-    // Wait longer for IndexedDB restoration to complete
-    // iOS PWA can be slow with IndexedDB operations
-    const timer = setTimeout(() => {
-      console.log('[ClientAuthGuard] Done waiting for restoration')
+    // Import dynamically to avoid SSR issues
+    import('@/lib/supabase/client').then(({ onRestorationComplete }) => {
+      onRestorationComplete((success) => {
+        console.log('[ClientAuthGuard] Restoration completed:', success)
+        setRestorationDone(true)
+        setIsChecking(false)
+      })
+    })
+
+    // Fallback timeout in case restoration callback doesn't fire
+    const fallbackTimer = setTimeout(() => {
+      console.warn('[ClientAuthGuard] Fallback timeout reached')
+      setRestorationDone(true)
       setIsChecking(false)
-    }, 2000)
+    }, 5000)
 
     console.log('[ClientAuthGuard] Waiting for session restoration...')
-    return () => clearTimeout(timer)
+    return () => clearTimeout(fallbackTimer)
   }, [])
 
   useEffect(() => {
-    if (isLoading || isChecking) {
-      console.log('[ClientAuthGuard] Still loading/checking...', { isLoading, isChecking })
+    // Don't check auth until restoration is done and useAuth loading is complete
+    if (isLoading || isChecking || !restorationDone) {
+      console.log('[ClientAuthGuard] Still waiting...', {
+        isLoading,
+        isChecking,
+        restorationDone
+      })
       return
     }
 
@@ -65,16 +80,18 @@ export function ClientAuthGuard({
       return
     }
 
-    console.log('[ClientAuthGuard] ✅ Auth checks passed, showing content')
-  }, [authUser, user, isLoading, isChecking, requireAuth, requireProfile, router])
+    console.log('[ClientAuthGuard] ✅ Auth checks passed')
+  }, [authUser, user, isLoading, isChecking, restorationDone, requireAuth, requireProfile, router])
 
   // Show loading while checking auth
-  if (isLoading || isChecking) {
+  if (isLoading || isChecking || !restorationDone) {
     return (
       <div className="min-h-screen bg-stone-900 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-primary-500 animate-spin mx-auto mb-4" />
-          <p className="text-stone-400">Loading...</p>
+          <p className="text-stone-400">
+            {!restorationDone ? 'Restoring session...' : 'Loading...'}
+          </p>
         </div>
       </div>
     )
