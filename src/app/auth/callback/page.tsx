@@ -10,20 +10,29 @@ import Link from 'next/link'
 function AuthCallbackContent() {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
-  const [status, setStatus] = useState('Verifying your login...')
+
+  // Detect OAuth vs magic link to set appropriate initial message
+  const isOAuth = typeof window !== 'undefined' && window.location.search.includes('code=')
+  const [status, setStatus] = useState(
+    isOAuth ? 'Completing Google sign-in...' : 'Verifying your login...'
+  )
 
   useEffect(() => {
     const supabase = createClient()
     let attempts = 0
-    const maxAttempts = 10 // 10 attempts * 500ms = 5 seconds max
+    const maxAttempts = 20 // 20 attempts * 500ms = 10 seconds max (increased for OAuth)
     const interval = 500
     let isActive = true // Track if component is still mounted
+
+    // Detect if this is OAuth callback or magic link callback
+    const isOAuthCallback = window.location.search.includes('code=')
 
     const handleSuccessfulAuth = async (session: any) => {
       if (!isActive) return
 
       setStatus('Setting up your account...')
       console.log('✓ Session found, user:', session.user.id)
+      console.log('Auth method:', isOAuthCallback ? 'OAuth (Google)' : 'Magic Link')
 
       try {
         // Check if user profile exists
@@ -100,20 +109,33 @@ function AuthCallbackContent() {
         if (attempts >= maxAttempts) {
           console.log('✗ Timeout - no session after max attempts')
           if (isActive) {
-            setError(
-              'Could not verify your login. This can happen if:\n\n' +
-              '• You opened the link in a different browser\n' +
-              '• You opened the link in incognito/private mode\n' +
-              '• The link has expired (links expire after 1 hour)\n\n' +
-              'Please request a new magic link from the login page.'
-            )
+            if (isOAuthCallback) {
+              setError(
+                'Google sign-in failed. This can happen if:\n\n' +
+                '• The authorization was cancelled\n' +
+                '• Your browser blocked cookies\n' +
+                '• The connection timed out\n\n' +
+                'Please try signing in again.'
+              )
+            } else {
+              setError(
+                'Could not verify your login. This can happen if:\n\n' +
+                '• You opened the link in a different browser\n' +
+                '• You opened the link in incognito/private mode\n' +
+                '• The link has expired (links expire after 1 hour)\n\n' +
+                'Please request a new magic link from the login page.'
+              )
+            }
           }
           return true // Stop polling
         }
 
         // Update status
         if (isActive) {
-          setStatus(`Verifying your login...`)
+          const statusMsg = isOAuthCallback
+            ? 'Completing Google sign-in...'
+            : 'Verifying your login...'
+          setStatus(statusMsg)
         }
 
         return false // Continue polling
@@ -137,10 +159,11 @@ function AuthCallbackContent() {
     // Start polling after a short delay to let Supabase process the code
     console.log('=== Auth callback started ===')
     console.log('URL:', window.location.href)
-    const hasCode = window.location.search.includes('code=')
-    console.log('Has auth code:', hasCode)
+    console.log('Auth type:', isOAuthCallback ? 'OAuth (Google)' : 'Magic Link')
 
-    setTimeout(poll, 500)
+    // For OAuth, start immediately; for magic links, wait 500ms
+    const initialDelay = isOAuthCallback ? 100 : 500
+    setTimeout(poll, initialDelay)
 
     // Cleanup
     return () => {
