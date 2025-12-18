@@ -28,7 +28,7 @@ export default function AuthPage() {
           redirectTo: `${window.location.origin}/auth/callback`,
           queryParams: {
             access_type: 'offline',
-            prompt: 'consent',
+            prompt: 'select_account', // Shows saved Google accounts
           },
         },
       })
