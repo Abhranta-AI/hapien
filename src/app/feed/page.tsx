@@ -22,6 +22,7 @@ import { PostCard } from '@/components/feed/PostCard'
 import { HangoutCard } from '@/components/hangouts/HangoutCard'
 import { PostCardSkeleton } from '@/components/ui/Loading'
 import { WallPostWithRelations, HangoutWithRelations } from '@/types/database'
+import { SessionDiagnostic } from '@/components/SessionDiagnostic'
 
 export default function FeedPage() {
   const router = useRouter()
@@ -250,6 +251,9 @@ export default function FeedPage() {
 
         </div>
       </main>
+
+      {/* Floating debug button */}
+      <SessionDiagnostic />
     </AppShell>
     </ClientAuthGuard>
   )
