@@ -184,8 +184,8 @@ export function CreatePost({ communityId, onPostCreated }: CreatePostProps) {
 
           {/* Actions */}
           {isExpanded && (
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-stone-700">
-              <div className="flex items-center gap-1">
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-stone-700 gap-2">
+              <div className="flex items-center gap-0.5 flex-shrink min-w-0">
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -196,34 +196,34 @@ export function CreatePost({ communityId, onPostCreated }: CreatePostProps) {
                 />
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="p-2 text-stone-300 hover:text-primary-400 hover:bg-primary-900/30 rounded-lg transition-colors"
+                  className="p-1.5 text-stone-300 hover:text-primary-400 hover:bg-primary-900/30 rounded-lg transition-colors"
                   title="Add photos or videos"
                 >
                   <ImageIcon className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="p-2 text-stone-300 hover:text-primary-400 hover:bg-primary-900/30 rounded-lg transition-colors"
+                  className="p-1.5 text-stone-300 hover:text-primary-400 hover:bg-primary-900/30 rounded-lg transition-colors"
                   title="Add video"
                 >
                   <Video className="w-5 h-5" />
                 </button>
                 <button
-                  className="p-2 text-stone-300 hover:text-primary-400 hover:bg-primary-900/30 rounded-lg transition-colors"
+                  className="p-1.5 text-stone-300 hover:text-primary-400 hover:bg-primary-900/30 rounded-lg transition-colors"
                   title="Add location"
                 >
                   <MapPin className="w-5 h-5" />
                 </button>
 
                 {/* Visibility selector */}
-                <div className="relative ml-2">
+                <div className="relative ml-1">
                   <button
                     onClick={() => setShowVisibilityMenu(!showVisibilityMenu)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-stone-400 hover:bg-stone-700 rounded-lg transition-colors"
+                    className="flex items-center gap-1 px-2 py-1.5 text-sm text-stone-400 hover:bg-stone-700 rounded-lg transition-colors"
                   >
-                    <Users className="w-4 h-4" />
-                    <span>{visibilityConfig[visibility].label}</span>
-                    <ChevronDown className="w-4 h-4" />
+                    <Users className="w-4 h-4 flex-shrink-0" />
+                    <span className="hidden sm:inline">{visibilityConfig[visibility].label}</span>
+                    <ChevronDown className="w-3.5 h-3.5 flex-shrink-0" />
                   </button>
 
                   {showVisibilityMenu && (
@@ -254,7 +254,7 @@ export function CreatePost({ communityId, onPostCreated }: CreatePostProps) {
                 isLoading={isLoading}
                 disabled={!content.trim() && media.length === 0}
                 size="lg"
-                className="min-w-[100px] font-semibold"
+                className="flex-shrink-0 font-semibold px-6"
               >
                 Post
               </Button>
