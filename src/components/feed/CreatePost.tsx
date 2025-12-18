@@ -137,18 +137,21 @@ export function CreatePost({ communityId, onPostCreated }: CreatePostProps) {
           {/* Media previews */}
           {mediaPreviews.length > 0 && (
             <div className="mt-3">
-              {/* Media counter */}
-              <div className="flex items-center justify-between mb-2 px-1">
+              {/* Media counter - centered */}
+              <div className="flex items-center justify-center gap-3 mb-3">
                 <p className="text-sm text-stone-400">
                   {mediaPreviews.length} / 4 {mediaPreviews.length === 1 ? 'photo' : 'photos'}
                 </p>
                 {media.length < 4 && (
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="text-xs text-primary-400 hover:text-primary-300 font-medium"
-                  >
-                    + Add more
-                  </button>
+                  <>
+                    <div className="w-1 h-1 rounded-full bg-stone-600" />
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="text-sm text-primary-400 hover:text-primary-300 font-medium transition-colors"
+                    >
+                      Add more
+                    </button>
+                  </>
                 )}
               </div>
 
@@ -184,8 +187,9 @@ export function CreatePost({ communityId, onPostCreated }: CreatePostProps) {
 
           {/* Actions */}
           {isExpanded && (
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-stone-700 gap-2">
-              <div className="flex items-center gap-0.5 flex-shrink min-w-0">
+            <div className="mt-4 pt-4 border-t border-stone-700 space-y-3">
+              {/* Toolbar - centered */}
+              <div className="flex items-center justify-center gap-1">
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -249,15 +253,18 @@ export function CreatePost({ communityId, onPostCreated }: CreatePostProps) {
                 </div>
               </div>
 
-              <Button
-                onClick={handlePost}
-                isLoading={isLoading}
-                disabled={!content.trim() && media.length === 0}
-                size="lg"
-                className="flex-shrink-0 font-semibold px-6"
-              >
-                Post
-              </Button>
+              {/* Post button - centered */}
+              <div className="flex justify-center">
+                <Button
+                  onClick={handlePost}
+                  isLoading={isLoading}
+                  disabled={!content.trim() && media.length === 0}
+                  size="lg"
+                  className="font-semibold px-12"
+                >
+                  Post
+                </Button>
+              </div>
             </div>
           )}
         </div>
