@@ -1,42 +1,20 @@
 {
-  "name": "hapien",
+  "name": "hapien-monorepo",
   "version": "1.0.0",
-  "description": "Hapien - The Happy Sapien Network",
   "private": true,
+  "packageManager": "pnpm@10.26.0",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "db:generate-types": "supabase gen types typescript --project-id $SUPABASE_PROJECT_ID > src/types/database.ts"
-  },
-  "dependencies": {
-    "@anthropic-ai/sdk": "^0.71.2",
-    "@hookform/resolvers": "^3.9.0",
-    "@supabase/ssr": "^0.4.0",
-    "@supabase/supabase-js": "^2.45.0",
-    "clsx": "^2.1.1",
-    "date-fns": "^3.6.0",
-    "framer-motion": "^11.3.21",
-    "lucide-react": "^0.424.0",
-    "next": "14.2.5",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-hook-form": "^7.52.1",
-    "react-hot-toast": "^2.4.1",
-    "tailwind-merge": "^2.4.0",
-    "zod": "^3.23.8",
-    "zustand": "^4.5.4"
+    "dev": "turbo dev",
+    "dev:web": "pnpm --filter @hapien/web dev",
+    "dev:mobile": "pnpm --filter @hapien/mobile start",
+    "build": "turbo build",
+    "build:web": "pnpm --filter @hapien/web build",
+    "lint": "turbo lint",
+    "clean": "turbo clean && rm -rf node_modules",
+    "vercel-build": "pnpm --filter @hapien/web build"
   },
   "devDependencies": {
-    "@types/node": "^20.14.12",
-    "@types/react": "^18.3.3",
-    "@types/react-dom": "^18.3.0",
-    "autoprefixer": "^10.4.19",
-    "eslint": "^8.57.0",
-    "eslint-config-next": "14.2.5",
-    "postcss": "^8.4.40",
-    "tailwindcss": "^3.4.7",
-    "typescript": "^5.5.4"
+    "turbo": "^2.3.3",
+    "next": "14.2.5"
   }
 }
