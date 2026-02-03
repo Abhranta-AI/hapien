@@ -9,6 +9,341 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      agents: {
+        Row: {
+          id: string
+          owner_id: string
+          name: string
+          handle: string
+          avatar_url: string | null
+          bio: string | null
+          connection_type: AgentConnectionType
+          connection_config: AgentConnectionConfig
+          is_active: boolean
+          is_verified: boolean
+          last_active_at: string | null
+          last_health_check_at: string | null
+          health_status: AgentHealthStatus
+          total_conversations: number
+          total_matches: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          owner_id: string
+          name: string
+          handle: string
+          avatar_url?: string | null
+          bio?: string | null
+          connection_type: AgentConnectionType
+          connection_config: AgentConnectionConfig
+          is_active?: boolean
+          is_verified?: boolean
+          last_active_at?: string | null
+          last_health_check_at?: string | null
+          health_status?: AgentHealthStatus
+          total_conversations?: number
+          total_matches?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          owner_id?: string
+          name?: string
+          handle?: string
+          avatar_url?: string | null
+          bio?: string | null
+          connection_type?: AgentConnectionType
+          connection_config?: AgentConnectionConfig
+          is_active?: boolean
+          is_verified?: boolean
+          last_active_at?: string | null
+          last_health_check_at?: string | null
+          health_status?: AgentHealthStatus
+          total_conversations?: number
+          total_matches?: number
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      intents: {
+        Row: {
+          id: string
+          agent_id: string
+          type: IntentType
+          title: string
+          description: string | null
+          preferences: IntentPreferences
+          priority: number
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          agent_id: string
+          type: IntentType
+          title: string
+          description?: string | null
+          preferences?: IntentPreferences
+          priority?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          agent_id?: string
+          type?: IntentType
+          title?: string
+          description?: string | null
+          preferences?: IntentPreferences
+          priority?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      spaces: {
+        Row: {
+          id: string
+          name: string
+          slug: string
+          description: string | null
+          icon: string | null
+          cover_image_url: string | null
+          type: SpaceType
+          tags: string[]
+          is_public: boolean
+          is_featured: boolean
+          created_by: string | null
+          agent_count: number
+          conversation_count: number
+          match_count: number
+          settings: SpaceSettings
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          slug: string
+          description?: string | null
+          icon?: string | null
+          cover_image_url?: string | null
+          type: SpaceType
+          tags?: string[]
+          is_public?: boolean
+          is_featured?: boolean
+          created_by?: string | null
+          agent_count?: number
+          conversation_count?: number
+          match_count?: number
+          settings?: SpaceSettings
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          slug?: string
+          description?: string | null
+          icon?: string | null
+          cover_image_url?: string | null
+          type?: SpaceType
+          tags?: string[]
+          is_public?: boolean
+          is_featured?: boolean
+          created_by?: string | null
+          agent_count?: number
+          conversation_count?: number
+          match_count?: number
+          settings?: SpaceSettings
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      space_memberships: {
+        Row: {
+          id: string
+          space_id: string
+          agent_id: string
+          intent_id: string | null
+          is_active: boolean
+          joined_at: string
+        }
+        Insert: {
+          id?: string
+          space_id: string
+          agent_id: string
+          intent_id?: string | null
+          is_active?: boolean
+          joined_at?: string
+        }
+        Update: {
+          id?: string
+          space_id?: string
+          agent_id?: string
+          intent_id?: string | null
+          is_active?: boolean
+          joined_at?: string
+        }
+      }
+      agent_conversations: {
+        Row: {
+          id: string
+          space_id: string | null
+          agent_a_id: string
+          agent_b_id: string
+          agent_a_intent_id: string | null
+          agent_b_intent_id: string | null
+          status: ConversationStatus
+          turn_count: number
+          compatibility_score: number | null
+          agent_a_interest_score: number | null
+          agent_b_interest_score: number | null
+          match_proposed_by: string | null
+          match_proposal_status: MatchProposalStatus | null
+          started_at: string
+          last_message_at: string | null
+          concluded_at: string | null
+        }
+        Insert: {
+          id?: string
+          space_id?: string | null
+          agent_a_id: string
+          agent_b_id: string
+          agent_a_intent_id?: string | null
+          agent_b_intent_id?: string | null
+          status?: ConversationStatus
+          turn_count?: number
+          compatibility_score?: number | null
+          agent_a_interest_score?: number | null
+          agent_b_interest_score?: number | null
+          match_proposed_by?: string | null
+          match_proposal_status?: MatchProposalStatus | null
+          started_at?: string
+          last_message_at?: string | null
+          concluded_at?: string | null
+        }
+        Update: {
+          id?: string
+          space_id?: string | null
+          agent_a_id?: string
+          agent_b_id?: string
+          agent_a_intent_id?: string | null
+          agent_b_intent_id?: string | null
+          status?: ConversationStatus
+          turn_count?: number
+          compatibility_score?: number | null
+          agent_a_interest_score?: number | null
+          agent_b_interest_score?: number | null
+          match_proposed_by?: string | null
+          match_proposal_status?: MatchProposalStatus | null
+          started_at?: string
+          last_message_at?: string | null
+          concluded_at?: string | null
+        }
+      }
+      conversation_messages: {
+        Row: {
+          id: string
+          conversation_id: string
+          sender_agent_id: string
+          content: string
+          metadata: MessageMetadata
+          turn_number: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          conversation_id: string
+          sender_agent_id: string
+          content: string
+          metadata?: MessageMetadata
+          turn_number: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          conversation_id?: string
+          sender_agent_id?: string
+          content?: string
+          metadata?: MessageMetadata
+          turn_number?: number
+          created_at?: string
+        }
+      }
+      matches: {
+        Row: {
+          id: string
+          conversation_id: string | null
+          space_id: string | null
+          agent_a_id: string
+          agent_b_id: string
+          compatibility_score: number
+          match_reason: string | null
+          conversation_highlights: ConversationHighlight[]
+          agent_a_owner_approved: boolean | null
+          agent_b_owner_approved: boolean | null
+          agent_a_owner_approved_at: string | null
+          agent_b_owner_approved_at: string | null
+          status: MatchStatus
+          intro_scheduled_at: string | null
+          intro_method: IntroMethod | null
+          intro_notes: string | null
+          outcome_rating: number | null
+          outcome_notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          conversation_id?: string | null
+          space_id?: string | null
+          agent_a_id: string
+          agent_b_id: string
+          compatibility_score: number
+          match_reason?: string | null
+          conversation_highlights?: ConversationHighlight[]
+          agent_a_owner_approved?: boolean | null
+          agent_b_owner_approved?: boolean | null
+          agent_a_owner_approved_at?: string | null
+          agent_b_owner_approved_at?: string | null
+          status?: MatchStatus
+          intro_scheduled_at?: string | null
+          intro_method?: IntroMethod | null
+          intro_notes?: string | null
+          outcome_rating?: number | null
+          outcome_notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          conversation_id?: string | null
+          space_id?: string | null
+          agent_a_id?: string
+          agent_b_id?: string
+          compatibility_score?: number
+          match_reason?: string | null
+          conversation_highlights?: ConversationHighlight[]
+          agent_a_owner_approved?: boolean | null
+          agent_b_owner_approved?: boolean | null
+          agent_a_owner_approved_at?: string | null
+          agent_b_owner_approved_at?: string | null
+          status?: MatchStatus
+          intro_scheduled_at?: string | null
+          intro_method?: IntroMethod | null
+          intro_notes?: string | null
+          outcome_rating?: number | null
+          outcome_notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
       users: {
         Row: {
           id: string
@@ -18,7 +353,9 @@ export type Database = {
           bio: string | null
           avatar_url: string | null
           interests: string[] | null
-                  is_admin: boolean | null
+          is_admin: boolean | null
+          has_agents: boolean
+          agent_count: number
           created_at: string
           updated_at: string
         }
@@ -30,6 +367,8 @@ export type Database = {
           bio?: string | null
           avatar_url?: string | null
           interests?: string[] | null
+          has_agents?: boolean
+          agent_count?: number
           created_at?: string
           updated_at?: string
         }
@@ -41,6 +380,8 @@ export type Database = {
           bio?: string | null
           avatar_url?: string | null
           interests?: string[] | null
+          has_agents?: boolean
+          agent_count?: number
           created_at?: string
           updated_at?: string
         }
@@ -348,6 +689,29 @@ export type HangoutRsvp = Tables<'hangout_rsvps'>
 export type Comment = Tables<'comments'>
 export type Reaction = Tables<'reactions'>
 
+// Agent collaboration types
+export type Agent = Tables<'agents'>
+export type Intent = Tables<'intents'>
+export type Space = Tables<'spaces'>
+export type SpaceMembership = Tables<'space_memberships'>
+export type AgentConversation = Tables<'agent_conversations'>
+export type ConversationMessage = Tables<'conversation_messages'>
+export type Match = Tables<'matches'>
+
+// Insert types for agent collaboration
+export type AgentInsert = InsertTables<'agents'>
+export type IntentInsert = InsertTables<'intents'>
+export type SpaceInsert = InsertTables<'spaces'>
+export type SpaceMembershipInsert = InsertTables<'space_memberships'>
+export type AgentConversationInsert = InsertTables<'agent_conversations'>
+export type ConversationMessageInsert = InsertTables<'conversation_messages'>
+export type MatchInsert = InsertTables<'matches'>
+
+// Update types for agent collaboration
+export type AgentUpdate = UpdateTables<'agents'>
+export type IntentUpdate = UpdateTables<'intents'>
+export type SpaceUpdate = UpdateTables<'spaces'>
+
 // Extended types with relations
 export type UserWithRelations = User & {
   friends_count?: number
@@ -377,9 +741,144 @@ export type CommunityWithRelations = Community & {
   members_preview?: User[]
 }
 
+// Agent extended types with relations
+export type AgentWithRelations = Agent & {
+  owner: User
+  intents?: Intent[]
+  spaces?: Space[]
+}
+
+export type SpaceWithRelations = Space & {
+  created_by_user?: User
+  agents_preview?: Agent[]
+}
+
+export type AgentConversationWithRelations = AgentConversation & {
+  agent_a: Agent
+  agent_b: Agent
+  space?: Space
+  messages?: ConversationMessage[]
+}
+
+export type MatchWithRelations = Match & {
+  agent_a: AgentWithRelations
+  agent_b: AgentWithRelations
+  conversation?: AgentConversationWithRelations
+  space?: Space
+}
+
 export type HangoutCategory = Hangout['category']
 export type PostVisibility = Post['visibility']
 export type HangoutVisibility = Hangout['visibility']
+
+// ============================================
+// AGENT COLLABORATION TYPES
+// ============================================
+
+// Agent connection types
+export type AgentConnectionType = 'api_endpoint' | 'mindclone' | 'openai_gpt' | 'langchain' | 'custom_webhook'
+export type AgentHealthStatus = 'healthy' | 'unhealthy' | 'unknown'
+
+// Intent types
+export type IntentType = 'investment' | 'dating' | 'cofounder' | 'collaboration' | 'friendship' | 'hiring' | 'mentorship' | 'custom'
+
+// Space types
+export type SpaceType = 'investment' | 'dating' | 'professional' | 'social' | 'custom'
+
+// Conversation status
+export type ConversationStatus = 'active' | 'paused' | 'concluded' | 'matched' | 'expired'
+
+// Match status
+export type MatchStatus = 'pending' | 'both_approved' | 'intro_scheduled' | 'connected' | 'declined' | 'expired'
+
+// Match proposal status
+export type MatchProposalStatus = 'pending' | 'accepted' | 'rejected'
+
+// Intro method
+export type IntroMethod = 'video_call' | 'in_person' | 'message' | 'email'
+
+// Agent connection configs
+export interface ApiEndpointConfig {
+  endpoint: string
+  auth_header?: string
+  auth_type?: 'bearer' | 'api_key' | 'none'
+  timeout_ms?: number
+}
+
+export interface MindcloneConfig {
+  handle: string
+  base_url?: string
+}
+
+export interface OpenAIGPTConfig {
+  gpt_id: string
+  api_key_ref?: string
+}
+
+export interface LangchainConfig {
+  endpoint: string
+  chain_id?: string
+}
+
+export interface CustomWebhookConfig {
+  webhook_url: string
+  secret?: string
+}
+
+export type AgentConnectionConfig =
+  | ApiEndpointConfig
+  | MindcloneConfig
+  | OpenAIGPTConfig
+  | LangchainConfig
+  | CustomWebhookConfig
+
+// Intent preferences (examples for different types)
+export interface InvestmentPreferences {
+  stage?: string[]
+  sector?: string[]
+  check_size_min?: number
+  check_size_max?: number
+  geography?: string[]
+}
+
+export interface DatingPreferences {
+  age_range?: [number, number]
+  location?: string
+  interests?: string[]
+  relationship_type?: string
+}
+
+export interface CofounderPreferences {
+  role?: 'technical' | 'business' | 'design' | 'any'
+  equity_range?: [number, number]
+  commitment?: 'full-time' | 'part-time' | 'flexible'
+  skills?: string[]
+}
+
+export type IntentPreferences = InvestmentPreferences | DatingPreferences | CofounderPreferences | Record<string, unknown>
+
+// Space settings
+export interface SpaceSettings {
+  auto_match_threshold?: number
+  max_agents?: number
+  conversation_turns_limit?: number
+  require_approval?: boolean
+}
+
+// Conversation message metadata
+export interface MessageMetadata {
+  match_signal?: number
+  topics?: string[]
+  sentiment?: 'positive' | 'neutral' | 'negative'
+  key_points?: string[]
+}
+
+// Match conversation highlights
+export interface ConversationHighlight {
+  message_id: string
+  summary: string
+  timestamp?: string
+}
 
 // Wall-specific types (UI uses different visibility values than DB)
 export type WallPostVisibility = 'connections' | 'close_friends' | 'community'
