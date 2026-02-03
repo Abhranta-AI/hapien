@@ -9,7 +9,8 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-              // Primary - Grayscale (Black & White theme)        violet: {
+        // Primary - Grayscale (Black & White theme)
+        violet: {
           50: '#FAFAFA',
           100: '#F5F5F5',
           200: '#E5E5E5',

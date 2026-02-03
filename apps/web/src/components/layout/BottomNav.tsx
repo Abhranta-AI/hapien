@@ -2,25 +2,25 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Users, Calendar, User } from 'lucide-react'
+import { Home, Users, Calendar, User, Bot, Globe, Heart, MessageSquare } from 'lucide-react'
 import { cn } from '@/utils/helpers'
 import { motion } from 'framer-motion'
 
 const navItems = [
   {
-    label: 'Home',
-    href: '/feed',
-    icon: Home,
+    label: 'Spaces',
+    href: '/spaces',
+    icon: Globe,
   },
   {
-    label: 'Communities',
-    href: '/communities',
-    icon: Users,
+    label: 'Agents',
+    href: '/agents',
+    icon: Bot,
   },
   {
-    label: 'Hangouts',
-    href: '/hangouts',
-    icon: Calendar,
+    label: 'Matches',
+    href: '/matches',
+    icon: Heart,
   },
   {
     label: 'Profile',

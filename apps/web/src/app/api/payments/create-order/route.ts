@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Razorpay from 'razorpay'
-import { createClient } from '../../../../../../../lib/supabase/server'// Initialize Razorpay
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-})
+import { createClient } from '@/lib/supabase/server'
+
+// Initialize Razorpay lazily to avoid build errors
+let razorpay: Razorpay | null = null
+function getRazorpay() {
+  if (!razorpay) {
+    razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID!,
+      key_secret: process.env.RAZORPAY_KEY_SECRET!,
+    })
+  }
+  return razorpay
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -50,7 +58,7 @@ export async function POST(request: NextRequest) {
       },
     }
 
-    const order = await razorpay.orders.create(options)
+    const order = await getRazorpay().orders.create(options)
 
     // Store order in database
     const { error: dbError } = await supabase
