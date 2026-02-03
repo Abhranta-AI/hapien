@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
-import { createClient } from '../../../../../../../lib/supabase/server'export async function POST(request: NextRequest) {
+import { createClient } from '@/lib/supabase/server'
+
+export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
 
